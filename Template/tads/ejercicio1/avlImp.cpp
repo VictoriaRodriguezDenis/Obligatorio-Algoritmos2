@@ -63,15 +63,15 @@ class AVL {
 		return A;
 	}
 
-    NodoAVL * insertarAux(NodoAVL *nodo, int dato, string nombre, int puntaje, int& cant) {
+    NodoAVL * agregarJugadorEnAVL(NodoAVL *nodo, int dato, string nombre, int puntaje, int& cant) {
         if(!nodo) {
             return new NodoAVL(id, nombre, puntaje); 
             cant++;
         }
         if(id < nodo->id) 
-            nodo->izq = insertarAux(nodo->izq, id, dato, nombre, puntaje, cant);
+            nodo->izq = agregarJugadorEnAVL(nodo->izq, id, dato, nombre, puntaje, cant);
         else if(id > nodo->id)
-            nodo->der = insertarAux(nodo->izq, id, dato, nombre, puntaje, cant);
+            nodo->der = agregarJugadorEnAVL(nodo->izq, id, dato, nombre, puntaje, cant);
         else
             return nodo;
         
@@ -120,8 +120,8 @@ class AVL {
     }
 
 	public:
-    void insertar(int id, string nombre, int puntaje) {
-        raiz = insertarAux(raiz, id, nombre, puntaje, raiz->cantJugadores);
+    void agregarJugador(int id, string nombre, int puntaje) {
+        raiz = agregarJugadorEnAVL(raiz, id, nombre, puntaje, raiz->cantJugadores);
     }
 
     void encontrarJugador(int id){
