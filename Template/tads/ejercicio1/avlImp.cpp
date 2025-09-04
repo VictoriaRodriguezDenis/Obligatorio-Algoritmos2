@@ -131,6 +131,6 @@ typedef RepresentacionAVL* AVL;
 
 OJO!!!!! HAY QUE CAMBIAR INSERTAR
 Al tener 2 avl ahora en un avl hay que ingresar por id y en otro ingresar por puntaje
-
+podemos hacer dos funciones que inserten en dichos avl y luego un insertar "global" que haga las dos de una (preguntar sobre el orden de la funcion que engloba a las dos de O(log n))
 
 */
