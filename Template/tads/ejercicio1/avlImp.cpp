@@ -117,3 +117,20 @@ void agregarJugador(AVL a, int id, string nombre, int puntaje) {
 void encontrarJugador(AVL a, int id){
     encontrarJugadorEnAVL(a->raiz, id);
 }
+
+/*
+ESTRUCTURA CON 2 AVL
+struct RepresentacionAVL {
+    NodoAVL* raizPorId;
+    NodoAVL* raizPorPuntaje;
+    int cantJugadores;
+
+    RepresentacionAVL() : raizPorId(NULL), raizPorPuntaje(NULL), cantJugadores(0) {}
+};
+typedef RepresentacionAVL* AVL;
+
+OJO!!!!! HAY QUE CAMBIAR INSERTAR
+Al tener 2 avl ahora en un avl hay que ingresar por id y en otro ingresar por puntaje
+
+
+*/
