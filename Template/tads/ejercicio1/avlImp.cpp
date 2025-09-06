@@ -63,19 +63,18 @@ NodoAVL* rotacionAntiHoraria(NodoAVL* B) {
     return A;
 }
 
-NodoAVL * agregarJugadorEnAVLID(NodoAVL *nodo, int id, string nombre, int puntaje, int& cant, NodoAVL* mejorRankeado) {
+NodoAVL * agregarJugadorEnAVLID(NodoAVL *nodo, int id, string nombre, int puntaje, int& cant, NodoAVL* &mejorRankeado) {
     if(!nodo) {
         cant++;
-        if (!mejorRankeado || mejorRankeado->puntaje<puntaje || (mejorRankeado->puntaje==puntaje && mejorRankeado->id<id)){
-            mejorRankeado = new NodoAVL(id, nombre, puntaje);
-            return mejorRankeado;
-        } else {
-            return new NodoAVL(id, nombre, puntaje);
+        NodoAVL* nuevo = new NodoAVL(id, nombre, puntaje);
+        if (!mejorRankeado || mejorRankeado->puntaje < puntaje || 
+        (mejorRankeado->puntaje == puntaje && mejorRankeado->id > id)) {
+            mejorRankeado = nuevo;
         }
-    }
-    if(id < nodo->id) 
+        return nuevo;
+    } else if (id < nodo->id) 
         nodo->izq = agregarJugadorEnAVLID(nodo->izq, id, nombre, puntaje, cant, mejorRankeado);
-    else if(id > nodo->id)
+    else if (id > nodo->id)
         nodo->der = agregarJugadorEnAVLID(nodo->der, id, nombre, puntaje, cant, mejorRankeado);
     else
         return nodo;
@@ -122,20 +121,20 @@ NodoAVL *agregarJugadorEnAVLPuntaje(NodoAVL *nodo, int id, string nombre, int pu
     bool desbalanceoIzq = balanceo > 1;
     bool desbalanceoDer = balanceo < -1;
 
-    if(desbalanceoIzq && id < nodo->izq->id) {
+    if(desbalanceoIzq && puntaje < nodo->izq->puntaje) {
         return rotacionHoraria(nodo);
     }
 
-    if(desbalanceoDer && id > nodo->der->id) {
+    if(desbalanceoDer && puntaje > nodo->der->puntaje) {
         return rotacionAntiHoraria(nodo);
     }
 
-    if(desbalanceoIzq && id > nodo->izq->id) {
+    if(desbalanceoIzq && puntaje > nodo->izq->puntaje) {
         nodo->izq = rotacionAntiHoraria(nodo->izq);
         return rotacionHoraria(nodo);
     }
 
-    if(desbalanceoDer && id < nodo->der->id) {
+    if(desbalanceoDer && puntaje < nodo->der->puntaje) {
         nodo->der = rotacionHoraria(nodo->der);
         return rotacionAntiHoraria(nodo);
     }
@@ -154,8 +153,11 @@ void encontrarJugadorEnAVL(NodoAVL* a, int id){
 }
 
 void agregarJugador(AVL a, int id, string nombre, int puntaje) {
+    int cantActual = a->cantJugadores;
     a->raizPorId = agregarJugadorEnAVLID(a->raizPorId, id, nombre, puntaje, a->cantJugadores, a->jugadorMejorRankeado);
-    a->raizPorPuntaje = agregarJugadorEnAVLPuntaje(a->raizPorPuntaje, id, nombre, puntaje);
+    if (a->cantJugadores != cantActual){
+        a->raizPorPuntaje = agregarJugadorEnAVLPuntaje(a->raizPorPuntaje, id, nombre, puntaje);
+    }
 }
 
 void encontrarJugador(AVL a, int id){
@@ -181,7 +183,7 @@ void contarJugadoresPuntaje(AVL a, int puntaje){
 }
 
 void mostrarMejorJugador(AVL a){
-    if (!a) cout << "sin_jugadores" << endl;
+    if (!a->jugadorMejorRankeado) cout << "sin_jugadores" << endl;
     else cout << a->jugadorMejorRankeado->nombre << " " << a->jugadorMejorRankeado->puntaje << endl;
 }
 
