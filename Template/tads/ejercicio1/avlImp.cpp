@@ -16,10 +16,12 @@ struct NodoAVL {
 };
 
 struct RepresentacionAVL{
-  NodoAVL *raiz;
-  int cantJugadores;
+    NodoAVL* raizPorId;
+    NodoAVL* raizPorPuntaje;
+    NodoAVL* jugadorMejorRankeado;
+    int cantJugadores;
 
-  RepresentacionAVL(): raiz(NULL), cantJugadores(0) {}
+  RepresentacionAVL(): raizPorId(NULL), raizPorPuntaje(NULL), jugadorMejorRankeado(NULL), cantJugadores(0) {}
 };
 typedef RepresentacionAVL *AVL;
 
@@ -61,17 +63,58 @@ NodoAVL* rotacionAntiHoraria(NodoAVL* B) {
     return A;
 }
 
-NodoAVL * agregarJugadorEnAVL(NodoAVL *nodo, int id, string nombre, int puntaje, int& cant) {
+NodoAVL * agregarJugadorEnAVLID(NodoAVL *nodo, int id, string nombre, int puntaje, int& cant, NodoAVL* mejorRankeado) {
     if(!nodo) {
         cant++;
-        return new NodoAVL(id, nombre, puntaje);
+        if (!mejorRankeado || mejorRankeado->puntaje<puntaje || (mejorRankeado->puntaje==puntaje && mejorRankeado->id<id)){
+            mejorRankeado = new NodoAVL(id, nombre, puntaje);
+            return mejorRankeado;
+        } else {
+            return new NodoAVL(id, nombre, puntaje);
+        }
     }
     if(id < nodo->id) 
-        nodo->izq = agregarJugadorEnAVL(nodo->izq, id, nombre, puntaje, cant);
+        nodo->izq = agregarJugadorEnAVLID(nodo->izq, id, nombre, puntaje, cant, mejorRankeado);
     else if(id > nodo->id)
-        nodo->der = agregarJugadorEnAVL(nodo->der, id, nombre, puntaje, cant);
+        nodo->der = agregarJugadorEnAVLID(nodo->der, id, nombre, puntaje, cant, mejorRankeado);
     else
         return nodo;
+    
+    nodo->altura = 1 + max(altura(nodo->izq), altura(nodo->der));
+    int balanceo = balance(nodo);
+
+    bool desbalanceoIzq = balanceo > 1;
+    bool desbalanceoDer = balanceo < -1;
+
+    if(desbalanceoIzq && id < nodo->izq->id) {
+        return rotacionHoraria(nodo);
+    }
+
+    if(desbalanceoDer && id > nodo->der->id) {
+        return rotacionAntiHoraria(nodo);
+    }
+
+    if(desbalanceoIzq && id > nodo->izq->id) {
+        nodo->izq = rotacionAntiHoraria(nodo->izq);
+        return rotacionHoraria(nodo);
+    }
+
+    if(desbalanceoDer && id < nodo->der->id) {
+        nodo->der = rotacionHoraria(nodo->der);
+        return rotacionAntiHoraria(nodo);
+    }
+
+    return nodo;
+}
+
+NodoAVL *agregarJugadorEnAVLPuntaje(NodoAVL *nodo, int id, string nombre, int puntaje){
+    if(!nodo) {
+        return new NodoAVL(id, nombre, puntaje);
+    }
+    if(puntaje < nodo->puntaje) 
+        nodo->izq = agregarJugadorEnAVLPuntaje(nodo->izq, id, nombre, puntaje);
+    else if(puntaje >= nodo->puntaje)
+        nodo->der = agregarJugadorEnAVLPuntaje(nodo->der, id, nombre, puntaje);
     
     nodo->altura = 1 + max(altura(nodo->izq), altura(nodo->der));
     int balanceo = balance(nodo);
@@ -111,26 +154,37 @@ void encontrarJugadorEnAVL(NodoAVL* a, int id){
 }
 
 void agregarJugador(AVL a, int id, string nombre, int puntaje) {
-    a->raiz = agregarJugadorEnAVL(a->raiz, id, nombre, puntaje, a->cantJugadores);
+    a->raizPorId = agregarJugadorEnAVLID(a->raizPorId, id, nombre, puntaje, a->cantJugadores, a->jugadorMejorRankeado);
+    a->raizPorPuntaje = agregarJugadorEnAVLPuntaje(a->raizPorPuntaje, id, nombre, puntaje);
 }
 
 void encontrarJugador(AVL a, int id){
-    encontrarJugadorEnAVL(a->raiz, id);
+    encontrarJugadorEnAVL(a->raizPorId, id);
 }
 
-/*
-ESTRUCTURA CON 2 AVL
-struct RepresentacionAVL {
-    NodoAVL* raizPorId;
-    NodoAVL* raizPorPuntaje;
-    int cantJugadores;
+void contarJugadoresPuntajesEnAVL(NodoAVL* a, int puntaje, int& cant){
+    if (a){
+        if (a->puntaje>=puntaje){
+            cant++;
+            contarJugadoresPuntajesEnAVL(a->izq, puntaje, cant);
+            contarJugadoresPuntajesEnAVL(a->der, puntaje, cant);
+        } else {
+            contarJugadoresPuntajesEnAVL(a->der, puntaje, cant);
+        }
+    }
+}
 
-    RepresentacionAVL() : raizPorId(NULL), raizPorPuntaje(NULL), cantJugadores(0) {}
-};
-typedef RepresentacionAVL* AVL;
+void contarJugadoresPuntaje(AVL a, int puntaje){
+    int cant = 0;
+    contarJugadoresPuntajesEnAVL(a->raizPorPuntaje, puntaje, cant);
+    cout << cant << endl;
+}
 
-OJO!!!!! HAY QUE CAMBIAR INSERTAR
-Al tener 2 avl ahora en un avl hay que ingresar por id y en otro ingresar por puntaje
-podemos hacer dos funciones que inserten en dichos avl y luego un insertar "global" que haga las dos de una (preguntar sobre el orden de la funcion que engloba a las dos de O(log n))
+void mostrarMejorJugador(AVL a){
+    if (!a) cout << "sin_jugadores" << endl;
+    else cout << a->jugadorMejorRankeado->nombre << " " << a->jugadorMejorRankeado->puntaje << endl;
+}
 
-*/
+void contarJugadores (AVL a){
+    cout << a->cantJugadores << endl;
+}
