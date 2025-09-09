@@ -1,29 +1,12 @@
 #ifndef AVL_H
 #define AVL_H
-
+#include "avlImp.cpp"
 #include <string>
 using namespace std;
 
+struct NodoAVL;
 
-struct NodoAVL {
-    int id;
-    string nombre;
-    int puntaje;
-    NodoAVL* izq;
-    NodoAVL* der;
-    int altura;
-
-    NodoAVL(int unId, string unNombre, int unPuntaje);
-};
-
-struct RepresentacionAVL {
-    NodoAVL* raizPorId;
-    NodoAVL* raizPorPuntaje;
-    NodoAVL* jugadorMejorRankeado;
-    int cantJugadores;
-
-    RepresentacionAVL();
-};
+struct RepresentacionAVL;
 
 typedef RepresentacionAVL* AVL;
 
