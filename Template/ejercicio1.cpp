@@ -9,7 +9,7 @@ using namespace std;
 int main(){
    int cantAcciones;
    string accion; 
-   AVL a = crearAVL();
+   AVL* a = new AVL();
    cin >> cantAcciones;
    for (int i = 0; i < cantAcciones; i++) {
       cin >> accion;
@@ -20,19 +20,19 @@ int main(){
          cin >> id;
          cin >> nombre;
          cin >> puntaje;
-         agregarJugador(a, id, nombre, puntaje);
+         a->agregarJugador(id, nombre, puntaje);
       } else if (accion == "FIND"){
          int id;
          cin >> id;
-         encontrarJugador(a, id);
+         a->encontrarJugador(id);
       } else if (accion == "RANK"){
          int puntaje;
          cin >> puntaje;
-         contarJugadoresPuntaje(a, puntaje);
+         a->contarJugadoresPuntaje(puntaje);
       } else if (accion == "TOP1"){
-         mostrarMejorJugador(a);
+         a->mostrarMejorJugador();
       } else if (accion == "COUNT") {
-         contarJugadores(a);
+         a->contarJugadores();
       }
    }
     
