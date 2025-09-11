@@ -89,20 +89,20 @@ class AVL{
             bool desbalanceoIzq = balanceo > 1;
             bool desbalanceoDer = balanceo < -1;
 
-            if(desbalanceoIzq && id < nodo->izq->id) {
+            if(desbalanceoIzq && nodo->izq && id < nodo->izq->id) {
                 return rotacionHoraria(nodo);
             }
 
-            if(desbalanceoDer && id > nodo->der->id) {
+            if(desbalanceoDer && nodo->der && id > nodo->der->id) {
                 return rotacionAntiHoraria(nodo);
             }
 
-            if(desbalanceoIzq && id > nodo->izq->id) {
+            if(desbalanceoIzq && nodo->izq && id > nodo->izq->id) {
                 nodo->izq = rotacionAntiHoraria(nodo->izq);
                 return rotacionHoraria(nodo);
             }
 
-            if(desbalanceoDer && id < nodo->der->id) {
+            if(desbalanceoDer && nodo->der && id < nodo->der->id) {
                 nodo->der = rotacionHoraria(nodo->der);
                 return rotacionAntiHoraria(nodo);
             }
@@ -127,20 +127,20 @@ class AVL{
             bool desbalanceoIzq = balanceo > 1;
             bool desbalanceoDer = balanceo < -1;
 
-            if(desbalanceoIzq && puntaje < nodo->izq->puntaje) {
+            if(desbalanceoIzq && nodo->izq && puntaje < nodo->izq->puntaje) {
                 return rotacionHoraria(nodo);
             }
 
-            if(desbalanceoDer && puntaje > nodo->der->puntaje) {
+            if(desbalanceoDer && nodo->der && puntaje >= nodo->der->puntaje) {
                 return rotacionAntiHoraria(nodo);
             }
 
-            if(desbalanceoIzq && puntaje > nodo->izq->puntaje) {
+            if(desbalanceoIzq && nodo->izq && puntaje >= nodo->izq->puntaje) {
                 nodo->izq = rotacionAntiHoraria(nodo->izq);
                 return rotacionHoraria(nodo);
             }
 
-            if(desbalanceoDer && puntaje < nodo->der->puntaje) {
+            if(desbalanceoDer && nodo->der && puntaje < nodo->der->puntaje) {
                 nodo->der = rotacionHoraria(nodo->der);
                 return rotacionAntiHoraria(nodo);
             }
