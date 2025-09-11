@@ -12,8 +12,9 @@ class NodoAVL{
             NodoAVL* izq;
             NodoAVL* der;
             int altura;
+            int cantNodos;
 
-            NodoAVL(int unId, string unNombre, int unPuntaje) : id(unId), nombre(unNombre), puntaje(unPuntaje), izq(NULL), der(NULL), altura(1) {}
+            NodoAVL(int unId, string unNombre, int unPuntaje) : id(unId), nombre(unNombre), puntaje(unPuntaje), izq(NULL), der(NULL), altura(1), cantNodos(1) {}
 };
 
 class AVL{
@@ -37,13 +38,20 @@ class AVL{
             return altura(n->izq) - altura(n->der);
         }
 
+        int cantNodos(NodoAVL* n) {
+            return n ? n->cantNodos : 0;
+        }
+
+
         NodoAVL* rotacionHoraria(NodoAVL *A) {
             NodoAVL *B = A->izq;
             NodoAVL *T2 = B->der;
             B->der = A;
             A->izq = T2;
             A->altura = 1 + max(altura(A->izq), altura(A->der));
+            A->cantNodos = 1 + cantNodos(A->izq) + cantNodos(A->der);
             B->altura = 1 + max(altura(B->izq), altura(B->der));
+            B->cantNodos = 1 + cantNodos(B->izq) + cantNodos(B->der);
             return B;
         }
 
@@ -53,7 +61,9 @@ class AVL{
             A->izq = B;
             B->der = T2;
             B->altura = 1 + max(altura(B->izq), altura(B->der));
+            B->cantNodos = 1 + cantNodos(B->izq) + cantNodos(B->der);
             A->altura = 1 + max(altura(A->izq), altura(A->der));
+            A->cantNodos = 1 + cantNodos(A->izq) + cantNodos(A->der);
             return A;
         }
 
@@ -66,11 +76,11 @@ class AVL{
                     mejorRankeado = nuevo;
                 }
                 return nuevo;
-            } else if (id < nodo->id) 
+            } else if (id < nodo->id) {
                 nodo->izq = agregarJugadorEnAVLID(nodo->izq, id, nombre, puntaje, cant, mejorRankeado);
-            else if (id > nodo->id)
+            } else if (id > nodo->id) {
                 nodo->der = agregarJugadorEnAVLID(nodo->der, id, nombre, puntaje, cant, mejorRankeado);
-            else
+            } else
                 return nodo;
             
             nodo->altura = 1 + max(altura(nodo->izq), altura(nodo->der));
@@ -96,7 +106,7 @@ class AVL{
                 nodo->der = rotacionHoraria(nodo->der);
                 return rotacionAntiHoraria(nodo);
             }
-
+            nodo->cantNodos++;
             return nodo;
         }
 
@@ -104,10 +114,12 @@ class AVL{
             if(!nodo) {
                 return new NodoAVL(id, nombre, puntaje);
             }
-            if(puntaje < nodo->puntaje) 
-                nodo->izq = agregarJugadorEnAVLPuntaje(nodo->izq, id, nombre, puntaje);
-            else if(puntaje >= nodo->puntaje)
+            if(puntaje < nodo->puntaje){
+                nodo->izq = agregarJugadorEnAVLPuntaje(nodo->izq, id, nombre, puntaje);            
+            }
+            else if(puntaje >= nodo->puntaje) {
                 nodo->der = agregarJugadorEnAVLPuntaje(nodo->der, id, nombre, puntaje);
+            }
             
             nodo->altura = 1 + max(altura(nodo->izq), altura(nodo->der));
             int balanceo = balance(nodo);
@@ -132,7 +144,7 @@ class AVL{
                 nodo->der = rotacionHoraria(nodo->der);
                 return rotacionAntiHoraria(nodo);
             }
-
+            nodo->cantNodos++;
             return nodo;
         }
 
@@ -149,9 +161,8 @@ class AVL{
         void contarJugadoresPuntajesEnAVL(NodoAVL* a, int puntaje, int& cant){
             if (a){
                 if (a->puntaje>=puntaje){
-                    cant++;
+                    cant += 1 + cantNodos(a->der);
                     contarJugadoresPuntajesEnAVL(a->izq, puntaje, cant);
-                    contarJugadoresPuntajesEnAVL(a->der, puntaje, cant);
                 } else {
                     contarJugadoresPuntajesEnAVL(a->der, puntaje, cant);
                 }

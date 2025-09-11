@@ -2,7 +2,7 @@
 #include <string>
 #include <iostream>
 #include <limits>
-#include "tads\ejercicio1\avl.h"
+#include "tads\ejercicio1\avlImp.cpp"
 
 using namespace std;
 
