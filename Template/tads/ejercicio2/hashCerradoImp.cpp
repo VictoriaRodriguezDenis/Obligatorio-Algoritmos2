@@ -64,7 +64,7 @@ class repHash {
             return int(h);
         }
 
-        int fhash2(const string &key) {
+        int fhash2(string &key) {
             long long h = 0;
             long long p = 37; // distinto de fhash1
             for (char c : key) {
