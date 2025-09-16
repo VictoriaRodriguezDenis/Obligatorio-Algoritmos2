@@ -95,6 +95,15 @@ class repHash {
             }
         }
 
+        void eliminarListaYPath (string d, nodoRecurso*& l){
+            while (l){
+                limpiarPath(d, l->path);
+                nodoRecurso* aBorrar = l;
+                l = l->sig;
+                delete aBorrar;
+            }
+        }
+
         void agregarRecursoPorDominio(string d, string p, string t, int tiempo){
             int intento = 0;
             int i = calculateIndex(d, intento);;
@@ -142,7 +151,7 @@ class repHash {
             }
         }
 
-        void borrarRecursoPorDominio(string d, string p){
+        void borrarRecursoPorPath(string d, string p){
             int intento = 0;
             int i = calculateIndex(d+p, intento);
             while(tablaPath[i] && !(tablaPath[i]->dominio == d && tablaPath[i]->path == p && !tablaPath[i]->estaBorrado)) {
@@ -153,14 +162,17 @@ class repHash {
             else return; // No existe
         }
         
-        void borrarRecursoPorPath(string d, string p){ // HAY QUE CAMBIARLO
+        void borrarRecursoPorDominio(string d, string p){ // HAY QUE CAMBIARLO
             int intento = 0;
             int i = calculateIndex(d, intento);
             while(tablaDominio[i] && !(tablaDominio[i]->dominio == d && !tablaDominio[i]->estaBorrado)) {
                 intento++;
                 i = calculateIndex(d, intento);
             }
-            if (tablaDominio[i] && !tablaDominio[i]->estaBorrado) tablaDominio[i]->estaBorrado = true;
+            if (tablaDominio[i] && !tablaDominio[i]->estaBorrado) {
+                // un while con dos punteros
+                tablaDominio[i]->estaBorrado = true;
+            }
         }
 
     public:
@@ -235,7 +247,10 @@ class repHash {
             int i = calculateIndex(d, intento);
             while(tablaDominio[i] && !tablaDominio[i]->estaBorrado){
                 if(tablaDominio[i]->dominio == d){
-                    if (!tablaDominio[i]->raiz) cout << " " << endl;
+                    if (!tablaDominio[i]->raiz) {
+                        cout << " " << endl;
+                        return;
+                    }
                     while (tablaDominio[i]->raiz){    
                         cout << tablaDominio[i]->raiz->path << " " << endl;
                         tablaDominio[i]->raiz=tablaDominio[i]->raiz->sig;
@@ -254,7 +269,22 @@ class repHash {
             int i = calculateIndex(d, intento);
             while(tablaDominio[i] && !tablaDominio[i]->estaBorrado){
                 if(tablaDominio[i]->dominio == d){
-                    eliminarLista(tablaDominio[i]->raiz);
+                    // Conocer los paths.
+                    eliminarListaYPath(d, tablaDominio[i]->raiz);
+                    return;
+                }
+                intento++;
+                i = calculateIndex(d, intento);
+            }
+            cout << " " << endl;
+        }
+
+        void limpiarPath(string d, string p){
+            int intento = 0;
+            int i = calculateIndex(d+p, intento);
+            while(tablaDominio[i] && !tablaDominio[i]->estaBorrado){
+                if(!tablaPath[i]->estaBorrado && tablaPath[i]->dominio == d && tablaPath[i]->path == p){
+                    tablaPath[i]->estaBorrado = true;
                     return;
                 }
                 intento++;
@@ -266,6 +296,23 @@ class repHash {
         void totalRecursos(){
             cout << cant << endl;
         }
-};
 
+        void limpiar(){
+            for (int i = 0; i < largoVec; i++) {
+                if (tablaDominio[i]) {
+                    eliminarLista(tablaDominio[i]->raiz);
+                    delete tablaDominio[i];
+                    tablaDominio[i] = NULL;
+                }
+            }
+            for (int i = 0; i < largoVec; i++) {
+                if (tablaPath[i]) {
+                    delete tablaPath[i];
+                    tablaPath[i] = NULL;
+                }
+            }
+            cant = 0;
+       }
+};
+typedef repHash * Hash;
 
