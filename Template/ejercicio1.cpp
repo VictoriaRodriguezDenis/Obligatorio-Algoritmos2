@@ -9,7 +9,7 @@ using namespace std;
 int main(){
    int cantAcciones;
    string accion; 
-   AVL* a = new AVL();
+   AVL a = new repAVL();
    cin >> cantAcciones;
    for (int i = 0; i < cantAcciones; i++) {
       cin >> accion;

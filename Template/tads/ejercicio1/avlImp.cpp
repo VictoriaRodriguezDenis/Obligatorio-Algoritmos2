@@ -17,7 +17,7 @@ class NodoAVL{
             NodoAVL(int unId, string unNombre, int unPuntaje) : id(unId), nombre(unNombre), puntaje(unPuntaje), izq(NULL), der(NULL), altura(1), cantNodos(1) {}
 };
 
-class AVL{
+class repAVL{
     private:
         NodoAVL* raizPorId;
         NodoAVL* raizPorPuntaje;
@@ -170,7 +170,7 @@ class AVL{
         }
 
     public:
-        AVL(){
+        repAVL(){
             this->raizPorId = NULL;
             this->raizPorPuntaje = NULL;
             this->jugadorMejorRankeado = NULL;
@@ -204,3 +204,4 @@ class AVL{
             cout << cantJugadores << endl;
         }
 };
+typedef repAVL * AVL;
