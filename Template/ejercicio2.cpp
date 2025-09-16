@@ -1,8 +1,6 @@
-#include <cassert>
 #include <string>
 #include <iostream>
-#include <limits>
-#include "tads\ejercicio2\hashCerradoImp2.cpp"
+#include "tads\ejercicio2\hashCerradoImp.cpp"
 using namespace std;
 
 int main()
@@ -35,6 +33,12 @@ int main()
             cin >> dominio;
             cin >> path;
             h->borrarRecurso(dominio, path);
+        } else if (accion == "CONTAINS") {
+            string dominio;
+            string path;
+            cin >> dominio;
+            cin >> path;
+            h->perteneceRecurso(dominio, path);        
         } else if (accion == "COUNT_DOMAIN"){
             string dominio;
             cin >> dominio;

@@ -1,10 +1,18 @@
-#include <cassert>
 #include <string>
 #include <iostream>
-#include <limits>
 using namespace std;
 
-class nodoHash {
+class nodoRecurso {
+    public:
+        string path;
+        string titulo;
+        int tiempo;	
+        nodoRecurso* sig;
+
+        nodoRecurso(string unPath, string unTitulo, int unTiempo) : path(unPath), titulo(unTitulo), tiempo(unTiempo), sig(NULL) {}
+};
+
+class nodoHashPath {
     public:
         string dominio;
         string path;
@@ -12,45 +20,72 @@ class nodoHash {
         int tiempo;
         bool estaBorrado;
 
-        nodoHash(string unDominio, string unPath, string unTitulo, int unTiempo) : dominio(unDominio), path(unPath), titulo(unTitulo), tiempo(unTiempo), estaBorrado(false) {}
+        nodoHashPath(string unDominio, string unPath, string unTitulo, int unTiempo) : dominio(unDominio), path(unPath), titulo(unTitulo), tiempo(unTiempo), estaBorrado(false) {}
 };
 
-class repHash{
-    private:
-        nodoHash** tablaDominio;
-        nodoHash** tablaDomYPath;
+class nodoHashDominio {
+    public:
+        nodoRecurso* raiz;
+        string dominio;
+        int cantRecursos;
+        bool estaBorrado;
+
+        nodoHashDominio(string unDominio) : dominio(unDominio), cantRecursos(0), estaBorrado(false), raiz(NULL) {}
+};
+
+class repHash {
+	private:
+        nodoHashDominio** tablaDominio;
+        nodoHashPath** tablaPath;	
         int tope;
         int cant;
         int largoVec;
-        
-        int fHash1(string dominio) {
-            int suma = 0;
-            for (char c : dominio) {
-                suma += c;
-            }
-            return suma % largoVec;
+/*
+        int fhash1(string key) {
+            int h = 0;
+            for (int i = 0; i < key.length(); i++)
+                h = h + key[i];
+            return h;
         }
 
-        int fHash2(string dominio, string path) {
-            int suma = 0;
-            string clave = dominio + path;
-            for (char c : clave) {
-                suma += c;
+        int fhash2(string key) {
+            int h = 0;
+            for (int i = 0; i < key.length(); i++)
+                h = 31 * h + int(key[i]);
+            return h;
+        }
+*/
+        int fhash1(string &key) {
+            long long h = 0;
+            long long p = 31;
+            for (char c : key) {
+                h = (h * p + c) % 1000000007; // un primo grande
             }
-            return 1 + (suma % (largoVec - 1));
+            return int(h);
+        }
+
+        int fhash2(const string &key) {
+            long long h = 0;
+            long long p = 37; // distinto de fhash1
+            for (char c : key) {
+                h = (h * p + c) % 1000000009; // otro primo grande
+            }
+            h = h * 2 + 1; // aseguramos que sea impar (requisito doble hashing)
+            return int(h);
+        }
+
+        int calculateIndex(string key, int tryCount) {
+            return abs(fhash1(key) + tryCount * fhash2(key)) % largoVec;
         }
 
         bool esPrimo(int num){
-            if(num<=1 || num%2==0 && num!=2) return false;
-            if(num==2) return true;
-            for (int i = 3; i < num/2; i+=2)
-            {
-                if(num%i==0)
-                {
-                    return false;
-                }
+            if(num <= 1) return false;
+            if(num == 2) return true;
+            if(num % 2 == 0) return false;
+            for(int i = 3; i*i <= num; i += 2){
+                if(num % i == 0) return false;
             }
-            return true;    
+            return true;
         }
 
         int primoSupMinimo(int dato){
@@ -60,50 +95,125 @@ class repHash{
             return dato;
         }
 
-        void agregarRecursoPorDominio(string d, string p, string t, int tiempo){
-            int i = fHash1(d)%largoVec;
-            int j = fHash2(d, p)%largoVec;
-            while(tablaDominio[i] && !tablaDominio[i]->estaBorrado){
-                if(tablaDominio[i]->dominio == d && tablaDominio[i]->path == p){
-                    tablaDominio[i]->titulo = t;
-                    tablaDominio[i]->tiempo = tiempo;
-                    return;
-                }
-                i = (i + j) % largoVec;
-            }
-            if(tablaDominio[i]){
-                //estaba borrado -> reuso el nodo
-                tablaDominio[i]->estaBorrado=false;
-                tablaDominio[i]->dominio = d;
-                tablaDominio[i]->path = p;
-                tablaDominio[i]->titulo = t;
-                tablaDominio[i]->tiempo = tiempo;
-            } else {
-                // estaba vacio -> crea un nodo nuevo
-                tablaDominio[i] = new nodoHash(d, p, t, tiempo);
-            }
-            cant++;
+        void agregarAlPrincipio(nodoRecurso*& l, string p, string t, int tiempo){
+            nodoRecurso* nuevo = new nodoRecurso(p, t, tiempo);
+            nuevo->sig = l;
+            l = nuevo;
         }
 
-        void agregarRecursoPorDomYPath(string d, string p, string t, int tiempo){
-            int i = fHash1(d);
-            int j = fHash2(d, p);
-            while(tablaDomYPath[j] && !tablaDomYPath[j]->estaBorrado){
-                if(tablaDomYPath[j]->dominio == d && tablaDomYPath[j]->path == p){
-                    tablaDomYPath[j]->titulo = t;
-                    tablaDomYPath[j]->tiempo = tiempo;
+        void eliminarLista (nodoRecurso*& l){
+            while (l){
+                nodoRecurso* aBorrar = l;
+                l = l->sig;
+                delete aBorrar;
+            }
+        }
+
+        void eliminarListaYPath (string d, nodoRecurso*& l){
+            while (l){
+                limpiarPath(d, l->path);
+                nodoRecurso* aBorrar = l;
+                l = l->sig;
+                delete aBorrar;
+            }
+        }
+
+        void agregarRecursoPorDominio(string d, string p, string t, int tiempo){
+            int intento = 0;
+            int i = calculateIndex(d, intento);;
+            while(tablaDominio[i] && !tablaDominio[i]->estaBorrado){
+                if(tablaDominio[i]->dominio == d){
+                    nodoRecurso* ant = nullptr;
+                    nodoRecurso* act = tablaDominio[i]->raiz;
+                    while(act){
+                        if(act->path == p){
+                            // existe el recurso -> actualizar y mover al frente
+                            act->titulo = t;
+                            act->tiempo = tiempo;
+                            if(ant){ // no estaba al frente -> extraer y mover al frente
+                                ant->sig = act->sig;
+                                act->sig = tablaDominio[i]->raiz;
+                                tablaDominio[i]->raiz = act;
+                            }
+                            return;
+                        }
+                        ant = act;
+                        act = act->sig;
+                    }
+                    agregarAlPrincipio(tablaDominio[i]->raiz, p, t, tiempo);
+                    tablaDominio[i]->cantRecursos++;
+                    cant++;
                     return;
                 }
-                j = (i + j) % largoVec;
+                intento++;
+                i = calculateIndex(d, intento);
             }
-            if(tablaDomYPath[j]){
-                tablaDomYPath[j]->estaBorrado=false;
-                tablaDomYPath[j]->dominio = d;
-                tablaDomYPath[j]->path = p;
-                tablaDomYPath[j]->titulo = t;
-                tablaDomYPath[j]->tiempo = tiempo;
+            if(tablaDominio[i]){
+                tablaDominio[i]->estaBorrado=false;
+                tablaDominio[i]->dominio=d;
+                tablaDominio[i]->raiz = NULL;
             } else {
-                tablaDomYPath[j] = new nodoHash(d, p, t, tiempo);
+                tablaDominio[i] = new nodoHashDominio(d);
+            }
+            agregarAlPrincipio(tablaDominio[i]->raiz, p, t, tiempo);
+            tablaDominio[i]->cantRecursos++; // ver si actualiza
+            cant++; // ver si actualiza
+        }
+
+        void agregarRecursoPorPath(string d, string p, string t, int tiempo){
+            int intento = 0;
+            int i = calculateIndex(d+p, intento);;
+            while(tablaPath[i] && !tablaPath[i]->estaBorrado){
+                if(tablaPath[i]->dominio == d && tablaPath[i]->path == p){
+                    tablaPath[i]->titulo = t;
+                    tablaPath[i]->tiempo = tiempo;
+                    return;
+                }
+                intento++;
+                i = calculateIndex(d+p, intento);
+            }
+            if(tablaPath[i]){
+                tablaPath[i]->estaBorrado=false;
+                tablaPath[i]->dominio = d;
+                tablaPath[i]->path = p;
+                tablaPath[i]->titulo = t;
+                tablaPath[i]->tiempo = tiempo;
+            } else {
+                tablaPath[i] = new nodoHashPath(d, p, t, tiempo);
+            }
+        }
+
+        void borrarRecursoPorPath(string d, string p){
+            int intento = 0;
+            int i = calculateIndex(d+p, intento);
+            while(tablaPath[i] && !(tablaPath[i]->dominio == d && tablaPath[i]->path == p && !tablaPath[i]->estaBorrado)) {
+                intento++;
+                i = calculateIndex(d+p, intento);
+            }
+            if (tablaPath[i] && !tablaPath[i]->estaBorrado) tablaPath[i]->estaBorrado = true;
+        }
+        
+        void borrarRecursoPorDominio(string d, string p){
+            int intento = 0;
+            int i = calculateIndex(d, intento);
+            while(tablaDominio[i] && !(tablaDominio[i]->dominio == d && !tablaDominio[i]->estaBorrado)) {
+                intento++;
+                i = calculateIndex(d, intento);
+            }
+            if (tablaDominio[i] && !tablaDominio[i]->estaBorrado) {
+                nodoRecurso* ant = NULL;
+                nodoRecurso* act = tablaDominio[i]->raiz;
+                while (act && act->path != p) {
+                    ant = act;
+                    act = act->sig;
+                }
+                if (act) {
+                    if (ant) ant->sig = act->sig;
+                    else tablaDominio[i]->raiz = act->sig;
+                    delete act;
+                    tablaDominio[i]->cantRecursos--;
+                    cant--;
+                }
             }
         }
 
@@ -111,132 +221,123 @@ class repHash{
         repHash(int tope){
             this->tope = tope;
             this->cant = 0;
-            this->largoVec = primoSupMinimo(tope);
-            this->tablaDominio = new nodoHash*[this->largoVec];
-            this->tablaDomYPath = new nodoHash*[this->largoVec];
+            this->largoVec = primoSupMinimo(tope*4);
+            this->tablaDominio = new nodoHashDominio*[this->largoVec];
+            this->tablaPath = new nodoHashPath*[this->largoVec];
             for (int i = 0; i < this->largoVec; i++)
             {
                 this->tablaDominio[i] = NULL;
-                this->tablaDomYPath[i] = NULL;
+                this->tablaPath[i] = NULL;
             }
+            
         }
 
         void agregarRecurso(string d, string p, string t, int tiempo){
             agregarRecursoPorDominio(d, p, t, tiempo);
-            agregarRecursoPorDomYPath(d, p, t, tiempo);
+            agregarRecursoPorPath(d, p, t, tiempo);
         }
 
         void obtenerRecurso(string d, string p){
-            int i = fHash1(d)%largoVec;
-            int j = fHash2(d, p)%largoVec;
-            while(tablaDomYPath[i]){
-                if(!tablaDomYPath[i]->estaBorrado && tablaDomYPath[i]->dominio == d && tablaDomYPath[i]->path == p){
-                    cout << tablaDomYPath[i]->titulo << " " << tablaDomYPath[i]->tiempo << endl;
+            int intento = 0;
+            int i = calculateIndex(d+p, intento);
+            while(tablaPath[i]){
+                if(!tablaPath[i]->estaBorrado && tablaPath[i]->dominio == d && tablaPath[i]->path == p){
+                    cout << tablaPath[i]->titulo << " " << tablaPath[i]->tiempo << endl;
                     return;
                 }
-                i = (i + j) % largoVec; // rari
+                intento++;
+                i = calculateIndex(d+p, intento);
             }
             cout << "recurso_no_encontrado" << endl;
         }
-   
-        void borrarRecurso(string d, string p){
-            int i = fHash1(d)%largoVec;
-            int j = fHash2(d, p)%largoVec;
-            while(tablaDomYPath[i] && !(tablaDomYPath[i]->dominio == d && tablaDomYPath[i]->path == p && !tablaDomYPath[i]->estaBorrado)) {
-                i = (i + j) % largoVec;
-            }
-            if (tablaDomYPath[i] && !tablaDomYPath[i]->estaBorrado) tablaDomYPath[i]->estaBorrado = true;
-            else return; // No existe
 
-            int nuevoi = fHash1(d) % largoVec;
-            int nuevoj = fHash2(d, p) % largoVec;
-            while(tablaDominio[nuevoi] && !(tablaDominio[nuevoi]->dominio == d && tablaDominio[nuevoi]->path == p && !tablaDominio[nuevoi]->estaBorrado)) {
-                nuevoi = (nuevoi + nuevoj) % largoVec;
-            }
-            if (tablaDominio[nuevoi] && !tablaDominio[nuevoi]->estaBorrado) tablaDominio[nuevoi]->estaBorrado = true;
-            cant--;
+        void borrarRecurso(string d, string p){
+            borrarRecursoPorDominio(d, p);
+            borrarRecursoPorPath(d, p);
         }
 
         void perteneceRecurso(string d, string p){
-            int i = fHash1(d)%largoVec;
-            int j = fHash2(d, p)%largoVec;
-            while(tablaDomYPath[i]){
-                if(!tablaDomYPath[i]->estaBorrado && tablaDomYPath[i]->dominio == d && tablaDomYPath[i]->path == p) {
+            int intento = 0;
+            int i = calculateIndex(d+p, intento);
+            while(tablaPath[i]){
+                if(!tablaPath[i]->estaBorrado && tablaPath[i]->dominio == d && tablaPath[i]->path == p) {
                     cout << "true" << endl;
                     return;
                 }
-                i = (i + j) % largoVec; // rari
+                intento++;
+                i = calculateIndex(d+p, intento);
             }
             cout << "false" << endl;            
         }
 
-        int contadorDominio(string dominio){
-                      
-            
-            //ver el orden
-             /*
-        class Hash {
-        private:n
-            // ... (todo lo que ya tienes)
-            unordered_map<string, it> contadorPorDominio;
-
-        public:
-            // ... (tus funciones existentes)
-
-            void agregarRecursoPorDominio(string d, string p, string t, int tiempo) {
-                // ... (tu código existente de agregar)
-                // PERO agregar esta línea al final:
-                contadorPorDominio[d]++;
+        void contarDominio(string d){
+            int intento = 0;
+            int i = calculateIndex(d, intento);
+            while(tablaDominio[i] && !tablaDominio[i]->estaBorrado){
+                if(tablaDominio[i]->dominio == d){
+                    cout << tablaDominio[i]->cantRecursos << endl;
+                    return;
+                }
+                intento++;
+                i = calculateIndex(d, intento);
             }
-
-            void borrarRecurso(string d, string p) {
-                // ... (tu código existente de borrar)
-                // PERO agregar esta línea al final:
-                contadorPorDominio[d]--;
-            }
-
-            int countDomain(string dominio) {
-                return contadorPorDominio[dominio];
-            }
-        };
-        */
+            cout << 0 << endl;
         }
 
         void listarDominio(string d){
-            int i = fHash1(d)%largoVec;
-            int j = fHash2(d, d)%largoVec;
+            int intento = 0;
+            int i = calculateIndex(d, intento);
             while(tablaDominio[i] && !tablaDominio[i]->estaBorrado){
                 if(tablaDominio[i]->dominio == d){
-                    cout << tablaDominio[i]->path << endl;
+                    if (!tablaDominio[i]->raiz) {
+                        cout << endl;
+                        return;
+                    }
+                    nodoRecurso* aux = tablaDominio[i]->raiz;
+                    bool primero = true;
+                    while (aux) {
+                        if (!primero) cout << " ";
+                        cout << aux->path;         
+                        aux = aux->sig;
+                        primero = false;
+                    }
+                    cout << "\n";
+                    return;
                 }
-                i = (i + j) % largoVec;
+                intento++;
+                i = calculateIndex(d, intento);
             }
-            cout << "" << endl;     
+            cout << "\n";
         }
 
-/*
-void listarDominio(string d) {
-    // arreglo auxiliar para guardar paths
-    string lista[1000];  // si querés hacerlo más genérico, podrías usar cant o largoVec
-    int cantPaths = 0;
-
-    // recolectar todos los paths del dominio
-    for (int i = 0; i < largoVec; i++) {
-        if (tablaDominio[i] && !tablaDominio[i]->estaBorrado && tablaDominio[i]->dominio == d) {
-            lista[cantPaths++] = tablaDominio[i]->path;
+        void limpiarDominio(string d){
+            int intento = 0;
+            int i = calculateIndex(d, intento);
+            while(tablaDominio[i] && !tablaDominio[i]->estaBorrado){
+                if(tablaDominio[i]->dominio == d){
+                    eliminarListaYPath(d, tablaDominio[i]->raiz);
+                    tablaDominio[i]->raiz = NULL;
+                    cant -= tablaDominio[i]->cantRecursos;
+                    tablaDominio[i]->cantRecursos = 0;
+                    return;
+                }
+                intento++;
+                i = calculateIndex(d, intento);
+            }
         }
-    }
 
-    // imprimir en orden inverso (más reciente primero)
-    for (int i = cantPaths - 1; i >= 0; i--) {
-        cout << lista[i];
-        if (i > 0) cout << " ";
-    }
-    cout << endl;
-}
-
-*/
-
+        void limpiarPath(string d, string p){
+            int intento = 0;
+            int i = calculateIndex(d+p, intento);
+            while(tablaPath[i] && !tablaPath[i]->estaBorrado){
+                if(!tablaPath[i]->estaBorrado && tablaPath[i]->dominio == d && tablaPath[i]->path == p){
+                    tablaPath[i]->estaBorrado = true;
+                    return;
+                }
+                intento++;
+                i = calculateIndex(d+p, intento);
+            }
+        }
 
         void totalRecursos(){
             cout << cant << endl;
@@ -245,19 +346,18 @@ void listarDominio(string d) {
         void limpiar(){
             for (int i = 0; i < largoVec; i++) {
                 if (tablaDominio[i]) {
+                    eliminarLista(tablaDominio[i]->raiz);
                     delete tablaDominio[i];
                     tablaDominio[i] = NULL;
                 }
             }
             for (int i = 0; i < largoVec; i++) {
-                if (tablaDomYPath[i]) {
-                    delete tablaDomYPath[i];
-                    tablaDomYPath[i] = NULL;
+                if (tablaPath[i]) {
+                    delete tablaPath[i];
+                    tablaPath[i] = NULL;
                 }
             }
             cant = 0;
        }
 };
 typedef repHash * Hash;
-
-//cuales funciones van en el private y cuales van en el public, van las que usamos en el main
