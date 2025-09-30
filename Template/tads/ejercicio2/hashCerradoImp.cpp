@@ -40,7 +40,8 @@ class repHash {
         int tope;
         int cant;
         int largoVec;
-/*
+
+    /*
         int fhash1(string key) {
             int h = 0;
             for (int i = 0; i < key.length(); i++)
@@ -54,7 +55,8 @@ class repHash {
                 h = 31 * h + int(key[i]);
             return h;
         }
-*/
+    */
+
         int fhash1(string &key) {
             long long h = 0;
             long long p = 31;
