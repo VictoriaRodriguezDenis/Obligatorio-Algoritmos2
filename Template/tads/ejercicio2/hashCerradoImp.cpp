@@ -221,82 +221,36 @@ private:
         }
     }
 
-    void borrarRecursoPorPath(string d, string p)
-    {
-        int intento = 0;
-        int i = calculateIndex(d + p, intento);
-        while (tablaPath[i] != NULL && !(tablaPath[i]->dominio == d && tablaPath[i]->path == p && !tablaPath[i]->estaBorrado))
-        {
-            intento++;
-            i = calculateIndex(d + p, intento);
-        }
-        if (tablaPath[i] != NULL && !tablaPath[i]->estaBorrado)
-            tablaPath[i]->estaBorrado = true;
-    }
-
-    /*
-    void borrarRecursoPorDominio(string d, string p)
-    {
+    void borrarRecursoPorDominio(string d, string p) {
         int intento = 0;
         int i = calculateIndex(d, intento);
-        while (tablaDominio[i] && !(tablaDominio[i]->dominio == d && !tablaDominio[i]->estaBorrado))
+        while (tablaDominio[i] != NULL)
         {
+            if (!tablaDominio[i]->estaBorrado && tablaDominio[i]->dominio == d)
+            {
+                nodoRecurso *ant = NULL;
+                nodoRecurso *act = tablaDominio[i]->raiz;
+                while (act && act->path != p)
+                {
+                    ant = act;
+                    act = act->sig;
+                }
+                if (act)
+                {
+                    if (ant)
+                        ant->sig = act->sig;
+                    else
+                        tablaDominio[i]->raiz = act->sig;
+                    delete act;
+                    tablaDominio[i]->cantRecursos--;
+                    cant--;
+                }
+                return;
+            }
             intento++;
             i = calculateIndex(d, intento);
         }
-        if (tablaDominio[i] && !tablaDominio[i]->estaBorrado)
-        {
-            nodoRecurso *ant = NULL;
-            nodoRecurso *act = tablaDominio[i]->raiz;
-            while (act && act->path != p)
-            {
-                ant = act;
-                act = act->sig;
-            }
-            if (act)
-            {
-                if (ant)
-                    ant->sig = act->sig;
-                else
-                    tablaDominio[i]->raiz = act->sig;
-                delete act;
-                tablaDominio[i]->cantRecursos--;
-                cant--;
-            }
-        }
-    }*/
-
-    void borrarRecursoPorDominio(string d, string p)
-{
-    int intento = 0;
-    int i = calculateIndex(d, intento);
-    while (tablaDominio[i] != NULL) // corregido
-    {
-        if (!tablaDominio[i]->estaBorrado && tablaDominio[i]->dominio == d)
-        {
-            nodoRecurso *ant = NULL;
-            nodoRecurso *act = tablaDominio[i]->raiz;
-            while (act && act->path != p)
-            {
-                ant = act;
-                act = act->sig;
-            }
-            if (act)
-            {
-                if (ant)
-                    ant->sig = act->sig;
-                else
-                    tablaDominio[i]->raiz = act->sig;
-                delete act;
-                tablaDominio[i]->cantRecursos--;
-                cant--;
-            }
-            return;
-        }
-        intento++;
-        i = calculateIndex(d, intento);
     }
-}
 
 
 public:
@@ -337,10 +291,25 @@ public:
         cout << "recurso_no_encontrado" << endl;
     }
 
-    void borrarRecurso(string d, string p)
-    {
+    void borrarRecurso(string d, string p) {
+        int intento = 0;
+        int i = calculateIndex(d + p, intento);
+        bool encontrado = false;
+        while (tablaPath[i] != NULL) {
+            if (!tablaPath[i]->estaBorrado && tablaPath[i]->dominio == d && tablaPath[i]->path == p) {
+                encontrado = true;
+                break;
+            }
+            intento++;
+            i = calculateIndex(d + p, intento);
+        }
+        if (!encontrado) return; // Si no está en tablaPath, no hacer nada
+
+        // Marcar como borrado en tablaPath
+        tablaPath[i]->estaBorrado = true;
+
+        // Borrar de tablaDominio
         borrarRecursoPorDominio(d, p);
-        borrarRecursoPorPath(d, p);
     }
 
     void perteneceRecurso(string d, string p)
@@ -377,36 +346,28 @@ public:
         cout << 0 << endl;
     }
 
-    void listarDominio(string d)
-    {
+    void listarDominio(string d) {
         int intento = 0;
         int i = calculateIndex(d, intento);
-        while (tablaDominio[i] != NULL)
-        {
-            if (!tablaDominio[i]->estaBorrado && tablaDominio[i]->dominio == d)
-            {
-                if (!tablaDominio[i]->raiz)
-                {
+        while (tablaDominio[i] != NULL) {
+            if (!tablaDominio[i]->estaBorrado && tablaDominio[i]->dominio == d) {
+                nodoRecurso *aux = tablaDominio[i]->raiz;
+                if (!aux) {
                     cout << endl;
                     return;
                 }
-                nodoRecurso *aux = tablaDominio[i]->raiz;
-                bool primero = true;
-                while (aux)
-                {
-                    if (!primero)
-                        cout << " ";
+                while (aux) {
                     cout << aux->path;
                     aux = aux->sig;
-                    primero = false;
+                    if (aux) cout << " ";
                 }
-                cout << "\n";
+                cout << endl;
                 return;
             }
             intento++;
             i = calculateIndex(d, intento);
         }
-        cout << "\n";
+        cout << endl;
     }
 
     void limpiarDominio(string d)
@@ -428,14 +389,11 @@ public:
         }
     }
 
-    void limpiarPath(string d, string p)
-    {
+    void limpiarPath(string d, string p) {
         int intento = 0;
         int i = calculateIndex(d + p, intento);
-        while (tablaPath[i] != NULL && !tablaPath[i]->estaBorrado)
-        {
-            if (!tablaPath[i]->estaBorrado && tablaPath[i]->dominio == d && tablaPath[i]->path == p)
-            {
+        while (tablaPath[i] != NULL) {
+            if (!tablaPath[i]->estaBorrado && tablaPath[i]->dominio == d && tablaPath[i]->path == p) {
                 tablaPath[i]->estaBorrado = true;
                 return;
             }
@@ -449,21 +407,14 @@ public:
         cout << cant << endl;
     }
 
-    void limpiar()
-    {
-        for (int i = 0; i < largoVec; i++)
-        {
-            if (tablaDominio[i] != NULL)
-            {
+    void limpiar() {
+        for (int i = 0; i < largoVec; i++) {
+            if (tablaDominio[i] != NULL) {
                 eliminarLista(tablaDominio[i]->raiz);
                 delete tablaDominio[i];
                 tablaDominio[i] = NULL;
             }
-        }
-        for (int i = 0; i < largoVec; i++)
-        {
-            if (tablaPath[i] != NULL)
-            {
+            if (tablaPath[i] != NULL) {
                 delete tablaPath[i];
                 tablaPath[i] = NULL;
             }
