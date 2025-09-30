@@ -45,6 +45,7 @@ private:
     int cant;
     int largoVec;
 
+    /*
     int fhash1(string key)
     {
         int h = 0;
@@ -59,9 +60,7 @@ private:
         for (int i = 0; i < key.length(); i++)
             h = 31 * h + int(key[i]);
         return h;
-    }
-
-/*
+    }*/
 
     int fhash1(string &key) {
         long long h = 0;
@@ -80,7 +79,7 @@ private:
         }
         h = h * 2 + 1; // aseguramos que sea impar (requisito doble hashing)
         return int(h);
-    }*/
+    }
 
     int calculateIndex(string key, int tryCount)
     {
@@ -155,11 +154,10 @@ private:
                 {
                     if (act->path == p)
                     {
-                        // existe el recurso -> actualizar y mover al frente
                         act->titulo = t;
                         act->tiempo = tiempo;
                         if (ant)
-                        { // no estaba al frente -> extraer y mover al frente
+                        { 
                             ant->sig = act->sig;
                             act->sig = tablaDominio[i]->raiz;
                             tablaDominio[i]->raiz = act;
@@ -188,8 +186,8 @@ private:
             tablaDominio[i] = new nodoHashDominio(d);
         }
         agregarAlPrincipio(tablaDominio[i]->raiz, p, t, tiempo);
-        tablaDominio[i]->cantRecursos++; // ver si actualiza
-        cant++;                          // ver si actualiza
+        tablaDominio[i]->cantRecursos++;
+        cant++;                      
     }
 
     void agregarRecursoPorPath(string d, string p, string t, int tiempo)
@@ -252,13 +250,26 @@ private:
         }
     }
 
+    void limpiarPath(string d, string p) {
+        int intento = 0;
+        int i = calculateIndex(d + p, intento);
+        while (tablaPath[i] != NULL) {
+            if (!tablaPath[i]->estaBorrado && tablaPath[i]->dominio == d && tablaPath[i]->path == p) {
+                tablaPath[i]->estaBorrado = true;
+                return;
+            }
+            intento++;
+            i = calculateIndex(d + p, intento);
+        }
+    }
+
 
 public:
     repHash(int tope)
     {
         this->tope = tope;
         this->cant = 0;
-        this->largoVec = primoSupMinimo(tope * 4);
+        this->largoVec = primoSupMinimo(tope);
         this->tablaDominio = new nodoHashDominio *[this->largoVec];
         this->tablaPath = new nodoHashPath *[this->largoVec];
         for (int i = 0; i < this->largoVec; i++)
@@ -303,12 +314,8 @@ public:
             intento++;
             i = calculateIndex(d + p, intento);
         }
-        if (!encontrado) return; // Si no está en tablaPath, no hacer nada
-
-        // Marcar como borrado en tablaPath
+        if (!encontrado) return; 
         tablaPath[i]->estaBorrado = true;
-
-        // Borrar de tablaDominio
         borrarRecursoPorDominio(d, p);
     }
 
@@ -386,19 +393,6 @@ public:
             }
             intento++;
             i = calculateIndex(d, intento);
-        }
-    }
-
-    void limpiarPath(string d, string p) {
-        int intento = 0;
-        int i = calculateIndex(d + p, intento);
-        while (tablaPath[i] != NULL) {
-            if (!tablaPath[i]->estaBorrado && tablaPath[i]->dominio == d && tablaPath[i]->path == p) {
-                tablaPath[i]->estaBorrado = true;
-                return;
-            }
-            intento++;
-            i = calculateIndex(d + p, intento);
         }
     }
 

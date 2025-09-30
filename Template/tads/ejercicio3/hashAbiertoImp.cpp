@@ -40,20 +40,39 @@ class repHash {
 private:
     nodoHashDominio** tablaDominio;
     nodoHashPath** tablaPath;
-    int largoVec;
+    int tope;
     int cant;
+    int largoVec;
 
-    int fhash(string& key) {
+    int fhash(string &key) {
         long long h = 0;
-        long long p = 31;
+        long long p = 37;
         for (char c : key) {
-            h = (h * p + c) % 1000000007;
+            h = (h * p + c) % 1000000009;
         }
+        h = h * 2 + 1;
         return int(h);
     }
 
-    int calculateIndex(string& key) {
-        return fhash(key) % largoVec;
+    int calculateIndex(string key) {
+        return abs(fhash(key)) % largoVec;
+    }
+
+    bool esPrimo(int num) {
+        if (num <= 1) return false;
+        if (num == 2) return true;
+        if (num % 2 == 0) return false;
+        for (int i = 3; i * i <= num; i += 2) {
+            if (num % i == 0) return false;
+        }
+        return true;
+    }
+
+    int primoSupMinimo(int dato) {
+        while (!esPrimo(dato)) {
+            dato++;
+        }
+        return dato;
     }
 
     void agregarAlPrincipio(nodoRecurso*& l, string p, string t, int tiempo) {
@@ -62,33 +81,40 @@ private:
         l = nuevo;
     }
 
-public:
-    repHash(int tope) {
-        largoVec = tope * 4;
-        tablaDominio = new nodoHashDominio*[largoVec];
-        tablaPath = new nodoHashPath*[largoVec];
-        for (int i = 0; i < largoVec; i++) {
-            tablaDominio[i] = NULL;
-            tablaPath[i] = NULL;
+    void eliminarLista(nodoRecurso*& l) {
+        while (l) {
+            nodoRecurso* aBorrar = l;
+            l = l->sig;
+            delete aBorrar;
         }
-        cant = 0;
     }
 
-    void agregarRecurso(string d, string p, string t, int tiempo) {
-        int idxDom = calculateIndex(d);
-        int idxPath = calculateIndex(d + p);
+    void eliminarListaYPath(string d, nodoRecurso*& l) {
+        while (l) {
+            limpiarPath(d, l->path);
+            nodoRecurso* aBorrar = l;
+            l = l->sig;
+            delete aBorrar;
+        }
+    }
 
-        // ---- Dominio ----
-        nodoHashDominio* dom = tablaDominio[idxDom];
+    void agregarRecursoPorDominio(string d, string p, string t, int tiempo) {
+        int i = calculateIndex(d);
+        nodoHashDominio* dom = tablaDominio[i];
+        nodoHashDominio* antDom = NULL;
         while (dom) {
             if (dom->dominio == d) {
                 nodoRecurso* act = dom->raiz;
                 nodoRecurso* ant = NULL;
                 while (act) {
                     if (act->path == p) {
-                        // Actualizar recurso existente
                         act->titulo = t;
                         act->tiempo = tiempo;
+                        if (ant) {
+                            ant->sig = act->sig;
+                            act->sig = dom->raiz;
+                            dom->raiz = act;
+                        }
                         return;
                     }
                     ant = act;
@@ -100,6 +126,7 @@ public:
                 cant++;
                 return;
             }
+            antDom = dom;
             dom = dom->sig;
         }
         // Dominio no existe → crear
@@ -107,34 +134,29 @@ public:
         agregarAlPrincipio(nuevoDom->raiz, p, t, tiempo);
         nuevoDom->cantRecursos++;
         cant++;
-        nuevoDom->sig = tablaDominio[idxDom];
-        tablaDominio[idxDom] = nuevoDom;
-
-        // ---- Path ----
-        nodoHashPath* nuevoPath = new nodoHashPath(d, p, t, tiempo);
-        nuevoPath->sig = tablaPath[idxPath];
-        tablaPath[idxPath] = nuevoPath;
+        nuevoDom->sig = tablaDominio[i];
+        tablaDominio[i] = nuevoDom;
     }
 
-    void obtenerRecurso(string d, string p) {
-        int idxPath = calculateIndex(d + p);
-        nodoHashPath* pathElem = tablaPath[idxPath];
+    void agregarRecursoPorPath(string d, string p, string t, int tiempo) {
+        int i = calculateIndex(d + p);
+        nodoHashPath* pathElem = tablaPath[i];
         while (pathElem) {
             if (pathElem->dominio == d && pathElem->path == p) {
-                cout << pathElem->titulo << " " << pathElem->tiempo << endl;
+                pathElem->titulo = t;
+                pathElem->tiempo = tiempo;
                 return;
             }
             pathElem = pathElem->sig;
         }
-        cout << "recurso_no_encontrado" << endl;
+        nodoHashPath* nuevoPath = new nodoHashPath(d, p, t, tiempo);
+        nuevoPath->sig = tablaPath[i];
+        tablaPath[i] = nuevoPath;
     }
 
-    void borrarRecurso(string d, string p) {
-        int idxDom = calculateIndex(d);
-        int idxPath = calculateIndex(d + p);
-
-        // borrar en dominio
-        nodoHashDominio* dom = tablaDominio[idxDom];
+    void borrarRecursoPorDominio(string d, string p) {
+        int i = calculateIndex(d);
+        nodoHashDominio* dom = tablaDominio[i];
         nodoHashDominio* antDom = NULL;
         while (dom) {
             if (dom->dominio == d) {
@@ -147,34 +169,179 @@ public:
                         delete act;
                         dom->cantRecursos--;
                         cant--;
-                        break;
+                        if (dom->cantRecursos == 0) {
+                            // Eliminar dominio si está vacío
+                            if (antDom) antDom->sig = dom->sig;
+                            else tablaDominio[i] = dom->sig;
+                            delete dom;
+                        }
+                        return;
                     }
                     ant = act;
                     act = act->sig;
                 }
-                break;
+                return;
             }
             antDom = dom;
             dom = dom->sig;
         }
-
-        // borrar en path
-        nodoHashPath* pathElem = tablaPath[idxPath];
+    }
+    
+    void limpiarPath(string d, string p) {
+        int i = calculateIndex(d + p);
+        nodoHashPath* pathElem = tablaPath[i];
         nodoHashPath* antPath = NULL;
         while (pathElem) {
             if (pathElem->dominio == d && pathElem->path == p) {
                 if (antPath) antPath->sig = pathElem->sig;
-                else tablaPath[idxPath] = pathElem->sig;
+                else tablaPath[i] = pathElem->sig;
                 delete pathElem;
-                break;
+                return;
             }
             antPath = pathElem;
             pathElem = pathElem->sig;
         }
     }
 
+public:
+    repHash(int tope) {
+        this->tope = tope;
+        this->cant = 0;
+        this->largoVec = primoSupMinimo(tope);
+        this->tablaDominio = new nodoHashDominio*[largoVec];
+        this->tablaPath = new nodoHashPath*[largoVec];
+        for (int i = 0; i < largoVec; i++) {
+            tablaDominio[i] = NULL;
+            tablaPath[i] = NULL;
+        }
+    }
+
+    void agregarRecurso(string d, string p, string t, int tiempo) {
+        agregarRecursoPorDominio(d, p, t, tiempo);
+        agregarRecursoPorPath(d, p, t, tiempo);
+    }
+
+    void obtenerRecurso(string d, string p) {
+        int i = calculateIndex(d + p);
+        nodoHashPath* pathElem = tablaPath[i];
+        while (pathElem) {
+            if (pathElem->dominio == d && pathElem->path == p) {
+                cout << pathElem->titulo << " " << pathElem->tiempo << endl;
+                return;
+            }
+            pathElem = pathElem->sig;
+        }
+        cout << "recurso_no_encontrado" << endl;
+    }
+
+    void borrarRecurso(string d, string p) {
+        int i = calculateIndex(d + p);
+        // Verificar si existe en tablaPath
+        nodoHashPath* pathElem = tablaPath[i];
+        bool encontrado = false;
+        while (pathElem) {
+            if (pathElem->dominio == d && pathElem->path == p) {
+                encontrado = true;
+                break;
+            }
+            pathElem = pathElem->sig;
+        }
+        if (!encontrado) return;
+
+        // Borrar en ambas tablas
+        limpiarPath(d, p);
+        borrarRecursoPorDominio(d, p);
+    }
+
+    void perteneceRecurso(string d, string p) {
+        int i = calculateIndex(d + p);
+        nodoHashPath* pathElem = tablaPath[i];
+        while (pathElem) {
+            if (pathElem->dominio == d && pathElem->path == p) {
+                cout << "true" << endl;
+                return;
+            }
+            pathElem = pathElem->sig;
+        }
+        cout << "false" << endl;
+    }
+
+    void contarDominio(string d) {
+        int i = calculateIndex(d);
+        nodoHashDominio* dom = tablaDominio[i];
+        while (dom) {
+            if (dom->dominio == d) {
+                cout << dom->cantRecursos << endl;
+                return;
+            }
+            dom = dom->sig;
+        }
+        cout << 0 << endl;
+    }
+
+    void listarDominio(string d) {
+        int i = calculateIndex(d);
+        nodoHashDominio* dom = tablaDominio[i];
+        while (dom) {
+            if (dom->dominio == d) {
+                nodoRecurso* aux = dom->raiz;
+                if (!aux) {
+                    cout << endl;
+                    return;
+                }
+                while (aux) {
+                    cout << aux->path;
+                    aux = aux->sig;
+                    if (aux) cout << " ";
+                }
+                cout << endl;
+                return;
+            }
+            dom = dom->sig;
+        }
+        cout << endl;
+    }
+
+    void limpiarDominio(string d) {
+        int i = calculateIndex(d);
+        nodoHashDominio* dom = tablaDominio[i];
+        nodoHashDominio* antDom = NULL;
+        while (dom) {
+            if (dom->dominio == d) {
+                eliminarListaYPath(d, dom->raiz);
+                dom->raiz = NULL;
+                cant -= dom->cantRecursos;
+                dom->cantRecursos = 0;
+                return;
+            }
+            antDom = dom;
+            dom = dom->sig;
+        }
+    }
+
     void totalRecursos() {
         cout << cant << endl;
+    }
+
+    void limpiar() {
+        for (int i = 0; i < largoVec; i++) {
+            nodoHashDominio* dom = tablaDominio[i];
+            while (dom) {
+                eliminarLista(dom->raiz);
+                nodoHashDominio* aBorrar = dom;
+                dom = dom->sig;
+                delete aBorrar;
+            }
+            tablaDominio[i] = NULL;
+            nodoHashPath* pathElem = tablaPath[i];
+            while (pathElem) {
+                nodoHashPath* aBorrar = pathElem;
+                pathElem = pathElem->sig;
+                delete aBorrar;
+            }
+            tablaPath[i] = NULL;
+        }
+        cant = 0;
     }
 };
 typedef repHash* Hash;
