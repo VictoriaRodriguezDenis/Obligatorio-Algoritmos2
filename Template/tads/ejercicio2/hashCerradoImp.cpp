@@ -45,7 +45,6 @@ private:
     int cant;
     int largoVec;
 
-    /*
     int fhash1(string key)
     {
         int h = 0;
@@ -54,6 +53,7 @@ private:
         return h;
     }
 
+    /*
     int fhash2(string key)
     {
         int h = 0;
@@ -62,6 +62,7 @@ private:
         return h;
     }*/
 
+    /*
     int fhash1(string &key) {
         long long h = 0;
         long long p = 31;
@@ -69,7 +70,7 @@ private:
             h = (h * p + c) % 1000000007; // un primo grande
         }
         return int(h);
-    }
+    }*/
 
     int fhash2(string &key) {
         long long h = 0;

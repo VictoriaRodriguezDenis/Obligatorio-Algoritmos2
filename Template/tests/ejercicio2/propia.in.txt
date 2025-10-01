@@ -1,0 +1,26 @@
+25
+PUT a.com /home TitleA 1
+PUT f.com /home TitleF 2
+PUT k.com /home TitleK 3
+PUT p.com /home TitleP 4
+PUT u.com /home TitleU 5
+PUT a.com /page TitleA2 6
+PUT f.com /page TitleF2 7
+PUT k.com /page TitleK2 8
+PUT p.com /page TitleP2 9
+PUT u.com /page TitleU2 10
+GET a.com /home
+GET f.com /home
+GET k.com /home
+GET p.com /home
+GET u.com /home
+CONTAINS a.com /home
+CONTAINS f.com /home
+CONTAINS k.com /home
+CONTAINS p.com /home
+CONTAINS u.com /home
+REMOVE a.com /home
+REMOVE f.com /home
+REMOVE k.com /home
+SIZE
+LIST_DOMAIN a.com

@@ -44,14 +44,12 @@ private:
     int cant;
     int largoVec;
 
-    int fhash(string &key) {
-        long long h = 0;
-        long long p = 37;
-        for (char c : key) {
-            h = (h * p + c) % 1000000009;
-        }
-        h = h * 2 + 1;
-        return int(h);
+    int fhash(string key)
+    {
+        int h = 0;
+        for (int i = 0; i < key.length(); i++)
+            h = h + int(key[i]);
+        return h;
     }
 
     int calculateIndex(string key) {
@@ -139,7 +137,7 @@ private:
     }
 
     void agregarRecursoPorPath(string d, string p, string t, int tiempo) {
-        int i = calculateIndex(d + p);
+        int i = calculateIndex(d+p);
         nodoHashPath* pathElem = tablaPath[i];
         while (pathElem) {
             if (pathElem->dominio == d && pathElem->path == p) {
