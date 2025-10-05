@@ -167,12 +167,13 @@ private:
                         delete act;
                         dom->cantRecursos--;
                         cant--;
+                        /*
                         if (dom->cantRecursos == 0) {
                             // Eliminar dominio si está vacío
                             if (antDom) antDom->sig = dom->sig;
                             else tablaDominio[i] = dom->sig;
                             delete dom;
-                        }
+                        }*/
                         return;
                     }
                     ant = act;
