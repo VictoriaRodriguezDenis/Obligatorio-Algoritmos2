@@ -6,30 +6,31 @@ using namespace std;
 int main() {
     int V, E;
     cin >> V >> E;
-    Arista* aristas = new Arista[E];
+
+    repHeap* heap = new repHeap(E);
+
     for (int i = 0; i < E; i++) {
-        cin >> aristas[i].desde >> aristas[i].hasta >> aristas[i].peso;
+        int u, v, w;
+        cin >> u >> v >> w;
+        heap->encolar(Arista(u, v, w));
     }
-    ordenarAristas(aristas, E);
-    RepConjuntosDisjuntos conjuntos = RepConjuntosDisjuntos(V);
+
+    RepConjuntosDisjuntos* conjuntos = new RepConjuntosDisjuntos(V);
     int pesoTotal = 0;
 
-    for (int i = 0; i < E; i++) {
-        int u = aristas[i].desde;
-        int v = aristas[i].hasta;
-        int w = aristas[i].peso;
-
-        int raizU = conjuntos.encontrar(u);
-        int raizV = conjuntos.encontrar(v);
-
-        if (raizU != raizV) {
-            conjuntos.unir(raizU, raizV);
-            pesoTotal += w;
+    while (!heap->esVacia()) {
+        Arista a = heap->minArista();
+        heap->desencolar();
+        if (conjuntos->encontrar(a.desde) != conjuntos->encontrar(a.hasta)) {
+            conjuntos->unir(a.desde, a.hasta);
+            pesoTotal += a.peso;
         }
     }
 
     cout << pesoTotal << "\n";
 
-    delete[] aristas;
+    delete heap;
+    delete conjuntos;
+
     return 0;
 }
