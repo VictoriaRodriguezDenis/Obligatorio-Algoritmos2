@@ -6,18 +6,14 @@ using namespace std;
 int main() {
     int V, E;
     cin >> V >> E;
-
     repHeap* heap = new repHeap(E);
-
     for (int i = 0; i < E; i++) {
         int u, v, w;
         cin >> u >> v >> w;
         heap->encolar(Arista(u, v, w));
     }
-
     RepConjuntosDisjuntos* conjuntos = new RepConjuntosDisjuntos(V);
     int pesoTotal = 0;
-
     while (!heap->esVacia()) {
         Arista a = heap->minArista();
         heap->desencolar();
@@ -26,11 +22,6 @@ int main() {
             pesoTotal += a.peso;
         }
     }
-
     cout << pesoTotal << "\n";
-
-    delete heap;
-    delete conjuntos;
-
     return 0;
 }
