@@ -11,7 +11,6 @@ public:
         : dato(dato), idxLista(idxLista), idxElem(idxElem) {}
 };
 
-// Min-Heap
 class repHeap {
 private:
     NodoHeap** heap;
@@ -77,7 +76,7 @@ public:
     }
 };
 
-// Función para fusionar K listas
+
 int* fusionarKListas(int** listas, int* tamanos, int K, int& totalElementos) {
     totalElementos = 0;
     for (int i = 0; i < K; i++) totalElementos += tamanos[i];
