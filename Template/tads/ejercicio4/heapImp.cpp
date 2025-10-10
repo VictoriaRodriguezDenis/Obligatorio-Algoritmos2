@@ -77,36 +77,26 @@ public:
     }
 };
 
-// Función para fusionar K listas
 int* fusionarKListas(int** listas, int* tamanos, int K, int& totalElementos) {
     totalElementos = 0;
     for (int i = 0; i < K; i++) totalElementos += tamanos[i];
-
     int* resultado = new int[totalElementos];
     int posResultado = 0;
-
-    repHeap heap(totalElementos);
-
-    // Insertar el primer elemento de cada lista
+    repHeap heap = repHeap(totalElementos);
     for (int i = 0; i < K; i++) {
         if (tamanos[i] > 0) {
             heap.encolar(listas[i][0], i, 0);
         }
     }
-
     while (!heap.esVacia()) {
         NodoHeap* nodo = heap.minNodo();
         resultado[posResultado++] = nodo->dato;
         int lista = nodo->idxLista;
         int elem = nodo->idxElem;
-
         heap.desencolar();
-
-        // Insertar siguiente elemento de la misma lista
         if (elem + 1 < tamanos[lista]) {
             heap.encolar(listas[lista][elem + 1], lista, elem + 1);
         }
     }
-
     return resultado;
 }

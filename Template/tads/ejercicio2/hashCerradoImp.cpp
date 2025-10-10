@@ -162,7 +162,6 @@ private:
 
         if (tablaDominio[i] != NULL)
         {
-            // reutiliza slot borrado
             tablaDominio[i]->estaBorrado = false;
             tablaDominio[i]->dominio = d;
             tablaDominio[i]->raiz = NULL;
@@ -305,14 +304,12 @@ public:
             if (!tablaPath[i]->estaBorrado && tablaPath[i]->dominio == d && tablaPath[i]->path == p)
             {
                 tablaPath[i]->estaBorrado = true;
-                // borrar de la lista por dominio
                 borrarRecursoPorDominio(d, p);
                 return;
             }
             intento++;
             i = calculateIndex(d + p, intento);
         }
-        // si no se encuentra, no hacer nada
     }
 
 

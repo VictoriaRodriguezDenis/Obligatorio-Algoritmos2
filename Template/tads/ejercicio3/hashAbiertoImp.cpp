@@ -118,7 +118,6 @@ private:
                     ant = act;
                     act = act->sig;
                 }
-                // No existe el path → agregar
                 agregarAlPrincipio(dom->raiz, p, t, tiempo);
                 dom->cantRecursos++;
                 cant++;
@@ -127,7 +126,6 @@ private:
             antDom = dom;
             dom = dom->sig;
         }
-        // Dominio no existe → crear
         nodoHashDominio* nuevoDom = new nodoHashDominio(d);
         agregarAlPrincipio(nuevoDom->raiz, p, t, tiempo);
         nuevoDom->cantRecursos++;
@@ -167,13 +165,6 @@ private:
                         delete act;
                         dom->cantRecursos--;
                         cant--;
-                        /*
-                        if (dom->cantRecursos == 0) {
-                            // Eliminar dominio si está vacío
-                            if (antDom) antDom->sig = dom->sig;
-                            else tablaDominio[i] = dom->sig;
-                            delete dom;
-                        }*/
                         return;
                     }
                     ant = act;
@@ -235,7 +226,6 @@ public:
 
     void borrarRecurso(string d, string p) {
         int i = calculateIndex(d + p);
-        // Verificar si existe en tablaPath
         nodoHashPath* pathElem = tablaPath[i];
         bool encontrado = false;
         while (pathElem) {
@@ -246,8 +236,6 @@ public:
             pathElem = pathElem->sig;
         }
         if (!encontrado) return;
-
-        // Borrar en ambas tablas
         limpiarPath(d, p);
         borrarRecursoPorDominio(d, p);
     }
