@@ -5,13 +5,12 @@ using namespace std;
 class NodoHeap {
 public:
     int dato;       
-    int idxLista;   // índice de la lista de donde viene
-    int idxElem;    // índice dentro de la lista
+    int idxLista;  
+    int idxElem;  
     NodoHeap(int dato, int idxLista, int idxElem) 
         : dato(dato), idxLista(idxLista), idxElem(idxElem) {}
 };
 
-// Min-Heap
 class repHeap {
 private:
     NodoHeap** heap;
