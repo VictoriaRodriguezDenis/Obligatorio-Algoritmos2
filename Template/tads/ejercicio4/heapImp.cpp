@@ -1,7 +1,6 @@
 #include <iostream>
 using namespace std;
 
-// Nodo del heap
 class NodoHeap {
 public:
     int dato;       
