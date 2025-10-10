@@ -167,12 +167,24 @@ class repAVL{
             }
         }
 
+        void borrarNodo(NodoAVL* nodo){
+            if (!nodo) return;
+            borrarNodo(nodo->izq);
+            borrarNodo(nodo->der);
+            delete nodo;
+        }
+
     public:
         repAVL(){
             this->raizPorId = NULL;
             this->raizPorPuntaje = NULL;
             this->jugadorMejorRankeado = NULL;
             this->cantJugadores = 0;
+        }
+
+        ~repAVL(){
+            borrarNodo(raizPorId);
+            borrarNodo(raizPorPuntaje);
         }
 
         void agregarJugador(int id, string nombre, int puntaje) {

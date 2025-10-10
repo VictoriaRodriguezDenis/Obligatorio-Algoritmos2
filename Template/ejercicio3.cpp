@@ -57,6 +57,7 @@ int main()
             h->limpiar();
         }
     }
-        
+    
+    delete h;
     return 0;
 }

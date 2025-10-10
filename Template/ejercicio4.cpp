@@ -21,5 +21,13 @@ int main() {
     for (int i = 0; i < total; i++) {
         cout << resultado[i] << "\n";
     }
+
+    delete[] resultado;
+    for (int i = 0; i < K; i++) {
+        delete[] listas[i];
+    }
+    delete[] listas;
+    delete[] tamanos;
+
     return 0;
 }

@@ -272,6 +272,13 @@ public:
         }
     }
 
+    ~repHash() {
+        limpiar();
+        delete[] tablaDominio;
+        delete[] tablaPath;
+    }
+
+
     void agregarRecurso(string d, string p, string t, int tiempo)
     {
         agregarRecursoPorDominio(d, p, t, tiempo);

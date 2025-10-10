@@ -33,6 +33,7 @@ int main(){
          a->contarJugadores();
       }
    }
-    
+   
+   delete a;
    return 0;
 }
