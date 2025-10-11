@@ -53,7 +53,7 @@ public:
         this->tope = tope;
         this->cant = 0;
         heap = new NodoHeap*[tope];
-        for (int i = 0; i < tope; i++) heap[i] = nullptr;
+        for (int i = 0; i < tope; i++) heap[i] = NULL;
     }
 
     ~repHeap() {
@@ -73,7 +73,7 @@ public:
     void desencolar() {
         delete heap[0];
         heap[0] = heap[--cant];
-        heap[cant] = nullptr;
+        heap[cant] = NULL;
         if (cant > 0) hundir(0);
     }
 };
