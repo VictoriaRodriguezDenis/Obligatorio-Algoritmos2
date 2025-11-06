@@ -5,11 +5,11 @@ using namespace std;
 const int MAXN = 100000;
 
 // Función auxiliar para hacer merge y contar inversiones
-long long mergeAndCount(int arr[], int temp[], int izq, int mid, int der) {
+int mergeAndCount(int arr[], int temp[], int izq, int mid, int der) {
     int i = izq;    // índice para subarray izquierdo
     int j = mid + 1; // índice para subarray derecho
     int k = izq;    // índice para array temporal
-    long long inv_count = 0;
+    int inv_count = 0;
 
     // Mientras hay elementos en ambos subarrays
     while (i <= mid && j <= der) {
@@ -39,8 +39,8 @@ long long mergeAndCount(int arr[], int temp[], int izq, int mid, int der) {
 }
 
 // Función recursiva de Divide and Conquer
-long long mergeSortAndCount(int arr[], int temp[], int izq, int der) {
-    long long inv_count = 0;
+int mergeSortAndCount(int arr[], int temp[], int izq, int der) {
+    int inv_count = 0;
     
     if (izq < der) {
         int mid = izq + (der - izq) / 2;
@@ -59,7 +59,7 @@ long long mergeSortAndCount(int arr[], int temp[], int izq, int der) {
 }
 
 // Función principal para contar inversiones
-long long contarInversiones(int arr[], int n) {
+int contarInversiones(int arr[], int n) {
     static int temp[MAXN];
     return mergeSortAndCount(arr, temp, 0, n - 1);
 }

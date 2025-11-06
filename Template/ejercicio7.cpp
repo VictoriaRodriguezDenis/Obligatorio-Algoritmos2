@@ -36,7 +36,7 @@ int main() {
     }
 
     // Contar inversiones usando Divide and Conquer (Merge Sort modificado)
-    long long inversiones = contarInversiones(ordenNumerico, n);
+    int inversiones = contarInversiones(ordenNumerico, n);
 
     cout << inversiones << endl;
 
