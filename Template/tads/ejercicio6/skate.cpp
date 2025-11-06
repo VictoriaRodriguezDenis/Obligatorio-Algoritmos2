@@ -93,28 +93,26 @@ int resolverSkate(Pozo pozos[], int cantPozos, Mejora mejoras[], int cantMejoras
     int indicePozo = 0;
     int indiceMejora = 0;
 
-    HeapMax mejorasDisponibles(cantMejoras);
+    HeapMax *mejorasDisponibles = new HeapMax(cantMejoras);
 
     while (posicion < destino)
     {
-        // Ignorar pozos que ya pasamos
         while (indicePozo < cantPozos && pozos[indicePozo].fin < posicion)
             indicePozo++;
 
         int alcance = posicion + poder;
-
-        // Si ya llegamos
         if (alcance >= destino)
+        {
+            delete mejorasDisponibles;
             return mejorasUsadas;
+        }
 
-        // Agregar mejoras alcanzables
         while (indiceMejora < cantMejoras && mejoras[indiceMejora].posicion <= alcance)
         {
-            mejorasDisponibles.encolar(mejoras[indiceMejora].aumento);
+            mejorasDisponibles->encolar(mejoras[indiceMejora].aumento);
             indiceMejora++;
         }
 
-        // Ajustar alcance si hay pozo bloqueando
         if (indicePozo < cantPozos &&
             pozos[indicePozo].inicio <= alcance &&
             pozos[indicePozo].inicio > posicion)
@@ -123,21 +121,23 @@ int resolverSkate(Pozo pozos[], int cantPozos, Mejora mejoras[], int cantMejoras
                 alcance = pozos[indicePozo].inicio - 1;
         }
 
-        // Si podemos avanzar sin pedir ayuda
         if (alcance > posicion)
         {
             posicion = alcance;
         }
         else
         {
-            // Si no podemos avanzar, pedimos una mejora
-            if (mejorasDisponibles.estaVacio())
+            if (mejorasDisponibles->estaVacio())
+            {
+                delete mejorasDisponibles;
                 return -1;
-            poder += mejorasDisponibles.obtenerMaximo();
-            mejorasDisponibles.desencolar();
+            }
+            poder += mejorasDisponibles->obtenerMaximo();
+            mejorasDisponibles->desencolar();
             mejorasUsadas++;
         }
     }
 
+    delete mejorasDisponibles;
     return mejorasUsadas;
 }
