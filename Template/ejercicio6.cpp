@@ -1,27 +1,31 @@
-#include <string>
 #include <iostream>
-#include "tads\ejercicio6\skate.cpp"
+#include <string>
+#include "tads/ejercicio6/skate.cpp"
 using namespace std;
 
 int main()
 {
-    int N, M, F;
-    cin >> N >> M >> F;
+    int cantPozos, cantMejoras, destino;
+    cin >> cantPozos >> cantMejoras >> destino;
 
-    Pozo pozos[MAXN];
-    for (int i = 0; i < N; i++)
+    // Reservamos memoria exacta según las cantidades
+    Pozo *pozos = new Pozo[cantPozos];
+    for (int i = 0; i < cantPozos; i++)
         cin >> pozos[i].inicio >> pozos[i].fin;
 
-    Mejora mejoras[MAXN];
-    for (int i = 0; i < M; i++)
+    Mejora *mejoras = new Mejora[cantMejoras];
+    for (int i = 0; i < cantMejoras; i++)
         cin >> mejoras[i].posicion >> mejoras[i].aumento;
 
-    int resultado = resolverSkate(pozos, N, mejoras, M, F);
+    int resultado = resolverSkate(pozos, cantPozos, mejoras, cantMejoras, destino);
 
     if (resultado == -1)
-        cout << "Imposible" << endl;
+        cout << "Imposible\n";
     else
-        cout << resultado << endl;
+        cout << resultado << "\n";
+
+    delete[] pozos;
+    delete[] mejoras;
 
     return 0;
 }

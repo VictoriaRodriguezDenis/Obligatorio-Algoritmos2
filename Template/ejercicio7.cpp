@@ -9,36 +9,36 @@ int main()
     int N;
     cin >> N;
 
-    // Reservar memoria dinámica
     string *rankingOficial = new string[N];
     string *rankingAyudante = new string[N];
-    int *arregloIndices = new int[N];
+    int *indicesNumericos = new int[N];
 
-    // Crear hash cerrado con espacio extra para reducir colisiones
-    HashCerrado tablaHash(N * 2);
+    // Crear hash cerrado dinámicamente (en heap)
+    HashCerrado *tablaDeIndices = new HashCerrado(N * 2);
 
-    // Leer ranking oficial y guardarlo en el hash
+    // --- Leer ranking oficial y cargarlo en el hash ---
     for (int i = 0; i < N; i++)
     {
         cin >> rankingOficial[i];
-        tablaHash.insertar(rankingOficial[i], i);
+        tablaDeIndices->insertar(rankingOficial[i], i);
     }
 
-    // Leer ranking del ayudante y traducir nombres a índices
+    // --- Leer ranking del ayudante ---
     for (int i = 0; i < N; i++)
     {
         cin >> rankingAyudante[i];
-        arregloIndices[i] = tablaHash.buscar(rankingAyudante[i]);
+        indicesNumericos[i] = tablaDeIndices->buscar(rankingAyudante[i]);
     }
 
-    // Contar el número total de inversiones entre rankings
-    long long totalInversiones = contarInversiones(arregloIndices, N);
+    // --- Calcular inversiones ---
+    long long totalInversiones = contarInversiones(indicesNumericos, N);
     cout << totalInversiones << "\n";
 
-    // Liberar memoria dinámica
+    // --- Liberar memoria ---
     delete[] rankingOficial;
     delete[] rankingAyudante;
-    delete[] arregloIndices;
+    delete[] indicesNumericos;
+    delete tablaDeIndices;
 
     return 0;
 }

@@ -1,112 +1,140 @@
 #include <iostream>
 using namespace std;
 
-const int MAXN = 100000;
-
 struct Pozo
 {
-    int inicio, fin;
+    int inicio;
+    int fin;
 };
 
 struct Mejora
 {
-    int posicion, aumento;
+    int posicion;
+    int aumento;
 };
 
+// --- TAD Heap Máximo (implementación sin vector ni MAXN) ---
 class HeapMax
 {
 private:
-    int datos[MAXN + 5];
-    int n;
+    int *elementos;
+    int cantidad;
+    int capacidad;
 
     void flotar(int i)
     {
-        while (i > 1 && datos[i] > datos[i / 2])
+        while (i > 1 && elementos[i] > elementos[i / 2])
         {
-            swap(datos[i], datos[i / 2]);
+            swap(elementos[i], elementos[i / 2]);
             i /= 2;
         }
     }
 
     void hundir(int i)
     {
-        while (2 * i <= n)
+        while (2 * i <= cantidad)
         {
-            int hijo = 2 * i;
-            if (hijo < n && datos[hijo + 1] > datos[hijo])
-                hijo++;
-            if (datos[i] >= datos[hijo])
+            int hijoMayor = 2 * i;
+            if (hijoMayor < cantidad && elementos[hijoMayor + 1] > elementos[hijoMayor])
+                hijoMayor++;
+            if (elementos[i] >= elementos[hijoMayor])
                 break;
-            swap(datos[i], datos[hijo]);
-            i = hijo;
+            swap(elementos[i], elementos[hijoMayor]);
+            i = hijoMayor;
         }
     }
 
 public:
-    HeapMax() : n(0) {}
+    HeapMax(int maxElementos)
+    {
+        capacidad = maxElementos + 5;
+        elementos = new int[capacidad];
+        cantidad = 0;
+    }
 
-    bool vacio() { return n == 0; }
+    ~HeapMax()
+    {
+        delete[] elementos;
+    }
+
+    bool estaVacio()
+    {
+        return cantidad == 0;
+    }
 
     void encolar(int valor)
     {
-        datos[++n] = valor;
-        flotar(n);
+        if (cantidad + 1 >= capacidad)
+            return; // protección por seguridad
+        elementos[++cantidad] = valor;
+        flotar(cantidad);
     }
 
-    int maximo() { return datos[1]; }
+    int obtenerMaximo()
+    {
+        return elementos[1];
+    }
 
     void desencolar()
     {
-        datos[1] = datos[n--];
+        if (cantidad == 0)
+            return;
+        elementos[1] = elementos[cantidad--];
         hundir(1);
     }
 };
 
-int resolverSkate(Pozo pozos[], int N, Mejora mejoras[], int M, int destino)
+// --- Lógica principal del problema ---
+int resolverSkate(Pozo pozos[], int cantPozos, Mejora mejoras[], int cantMejoras, int destino)
 {
-    int posicion = 1, poder = 1, mejorasUsadas = 0;
-    int idxPozo = 0, idxMejora = 0;
-    HeapMax heap;
+    int posicion = 1;
+    int poder = 1;
+    int mejorasUsadas = 0;
+    int indicePozo = 0;
+    int indiceMejora = 0;
+
+    HeapMax mejorasDisponibles(cantMejoras);
 
     while (posicion < destino)
     {
-        // Saltar pozos que ya dejamos atrás
-        while (idxPozo < N && pozos[idxPozo].fin < posicion)
-            idxPozo++;
+        // Ignorar pozos que ya pasamos
+        while (indicePozo < cantPozos && pozos[indicePozo].fin < posicion)
+            indicePozo++;
 
-        int alcanceMaximo = posicion + poder;
+        int alcance = posicion + poder;
 
-        // ¿Ya llegamos?
-        if (alcanceMaximo >= destino)
+        // Si ya llegamos
+        if (alcance >= destino)
             return mejorasUsadas;
 
-        // Recolectar todas las mejoras al alcance
-        while (idxMejora < M && mejoras[idxMejora].posicion <= alcanceMaximo)
+        // Agregar mejoras alcanzables
+        while (indiceMejora < cantMejoras && mejoras[indiceMejora].posicion <= alcance)
         {
-            heap.encolar(mejoras[idxMejora].aumento);
-            idxMejora++;
+            mejorasDisponibles.encolar(mejoras[indiceMejora].aumento);
+            indiceMejora++;
         }
 
-        // Ajustar alcance si hay un pozo que lo bloquea parcialmente
-        if (idxPozo < N && pozos[idxPozo].inicio <= alcanceMaximo && pozos[idxPozo].inicio > posicion)
+        // Ajustar alcance si hay pozo bloqueando
+        if (indicePozo < cantPozos &&
+            pozos[indicePozo].inicio <= alcance &&
+            pozos[indicePozo].inicio > posicion)
         {
-            if (pozos[idxPozo].fin >= alcanceMaximo)
-                alcanceMaximo = pozos[idxPozo].inicio - 1;
+            if (pozos[indicePozo].fin >= alcance)
+                alcance = pozos[indicePozo].inicio - 1;
         }
 
-        // ¿Podemos avanzar?
-        if (alcanceMaximo > posicion)
+        // Si podemos avanzar sin pedir ayuda
+        if (alcance > posicion)
         {
-            posicion = alcanceMaximo;
+            posicion = alcance;
         }
         else
         {
-            // Necesitamos una mejora para desbloquear
-            if (heap.vacio())
+            // Si no podemos avanzar, pedimos una mejora
+            if (mejorasDisponibles.estaVacio())
                 return -1;
-
-            poder += heap.maximo();
-            heap.desencolar();
+            poder += mejorasDisponibles.obtenerMaximo();
+            mejorasDisponibles.desencolar();
             mejorasUsadas++;
         }
     }
