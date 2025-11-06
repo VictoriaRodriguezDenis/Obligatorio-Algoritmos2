@@ -1,52 +1,41 @@
-#include <string>
 #include <iostream>
-#include "tads\ejercicio7\AVLRanking.cpp"
+#include <string>
+#include "tads/ejercicio7/hashCerrado.cpp"
+#include "tads/ejercicio7/ContadorInversiones.cpp"
 using namespace std;
+
 int main()
 {
+
     int n;
-    if (!(cin >> n) || n <= 0 || n > MAXN)
-    {
+    cin >> n;
+    if (n <= 0 || n > MAXN)
         return 1;
-    }
 
-    static string rankingOficial[MAXN];
-    static string rankingAyudante[MAXN];
-    static int ordenNumerico[MAXN];
+    string *oficial = new string[n];
+    string *ayudante = new string[n];
+    int *indices = new int[n];
 
-    // Leer ranking oficial
+    HashCerrado hash(n * 2); // espacio adicional por colisiones
+
     for (int i = 0; i < n; i++)
     {
-        if (!(cin >> rankingOficial[i]))
-        {
+        cin >> oficial[i];
+        hash.insertar(oficial[i], i);
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        cin >> ayudante[i];
+        indices[i] = hash.buscar(ayudante[i]);
+        if (indices[i] == -1)
             return 1;
-        }
     }
 
-    // Leer ranking del ayudante
-    for (int i = 0; i < n; i++)
-    {
-        if (!(cin >> rankingAyudante[i]))
-        {
-            return 1;
-        }
-    }
+    cout << contarInversiones(indices, n) << "\n";
 
-    // Convertir el ranking del ayudante a posiciones numéricas
-    // según el ranking oficial
-    for (int i = 0; i < n; i++)
-    {
-        ordenNumerico[i] = buscarIndice(rankingOficial, n, rankingAyudante[i]);
-        if (ordenNumerico[i] == -1)
-        {
-            return 1; // Nombre no encontrado
-        }
-    }
-
-    // Contar inversiones usando Divide and Conquer (Merge Sort modificado)
-    long long inversiones = contarInversiones(ordenNumerico, n);
-
-    cout << inversiones << endl;
-
+    delete[] oficial;
+    delete[] ayudante;
+    delete[] indices;
     return 0;
 }
