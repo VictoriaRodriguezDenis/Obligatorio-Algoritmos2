@@ -1,7 +1,18 @@
 #include <iostream>
 #include <string>
-#include "tads\ejercicio7\AVLRanking.cpp"
+#include "tads/ejercicio7/RankingInversiones.cpp"
 using namespace std;
+
+const int MAXN = 100000;
+
+// Mapea el nombre del ayudante al índice en el ranking oficial
+int buscarIndice(string rankingOficial[], int n, const string &nombre)
+{
+    for (int i = 0; i < n; i++)
+        if (rankingOficial[i] == nombre)
+            return i;
+    return -1;
+}
 
 int main()
 {
@@ -10,20 +21,19 @@ int main()
 
     string rankingOficial[MAXN];
     string rankingAyudante[MAXN];
-    int ordenNumerico[MAXN];
+    int arr[MAXN];
 
     for (int i = 0; i < n; i++)
         cin >> rankingOficial[i];
+
     for (int i = 0; i < n; i++)
         cin >> rankingAyudante[i];
 
+    // Convertir el ranking del ayudante a índices numéricos según el ranking oficial
     for (int i = 0; i < n; i++)
-        ordenNumerico[i] = buscarIndice(rankingOficial, n, rankingAyudante[i]);
+        arr[i] = buscarIndice(rankingOficial, n, rankingAyudante[i]);
 
-    repAVL arbol;
-    for (int i = n - 1; i >= 0; i--)
-        arbol.insertar(ordenNumerico[i]);
-
-    cout << arbol.obtenerInversiones() << endl;
+    // Calcular el número de inversiones (pares invertidos)
+    cout << contarInversiones(arr, n) << endl;
     return 0;
 }
