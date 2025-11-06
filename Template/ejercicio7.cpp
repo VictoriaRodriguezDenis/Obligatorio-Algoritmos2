@@ -1,38 +1,44 @@
 #include <iostream>
 #include <string>
-#include "tads/ejercicio7/hashCerrado.cpp"
+#include "tads/ejercicio7/HashCerrado.cpp"
 #include "tads/ejercicio7/ContadorInversiones.cpp"
 using namespace std;
 
 int main()
 {
+    int N;
+    cin >> N;
 
-    int n;
-    cin >> n;
-    string *oficial = new string[n];
-    string *ayudante = new string[n];
-    int *indices = new int[n];
+    // Reservar memoria dinámica
+    string *rankingOficial = new string[N];
+    string *rankingAyudante = new string[N];
+    int *arregloIndices = new int[N];
 
-    HashCerrado hash(n * 2); // espacio adicional por colisiones
+    // Crear hash cerrado con espacio extra para reducir colisiones
+    HashCerrado tablaHash(N * 2);
 
-    for (int i = 0; i < n; i++)
+    // Leer ranking oficial y guardarlo en el hash
+    for (int i = 0; i < N; i++)
     {
-        cin >> oficial[i];
-        hash.insertar(oficial[i], i);
+        cin >> rankingOficial[i];
+        tablaHash.insertar(rankingOficial[i], i);
     }
 
-    for (int i = 0; i < n; i++)
+    // Leer ranking del ayudante y traducir nombres a índices
+    for (int i = 0; i < N; i++)
     {
-        cin >> ayudante[i];
-        indices[i] = hash.buscar(ayudante[i]);
-        if (indices[i] == -1)
-            return 1;
+        cin >> rankingAyudante[i];
+        arregloIndices[i] = tablaHash.buscar(rankingAyudante[i]);
     }
 
-    cout << contarInversiones(indices, n) << "\n";
+    // Contar el número total de inversiones entre rankings
+    long long totalInversiones = contarInversiones(arregloIndices, N);
+    cout << totalInversiones << "\n";
 
-    delete[] oficial;
-    delete[] ayudante;
-    delete[] indices;
+    // Liberar memoria dinámica
+    delete[] rankingOficial;
+    delete[] rankingAyudante;
+    delete[] arregloIndices;
+
     return 0;
 }

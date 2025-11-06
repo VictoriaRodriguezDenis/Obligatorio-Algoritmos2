@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <cmath>
 using namespace std;
 
 class NodoHash
@@ -9,7 +10,12 @@ public:
     int valor;
     bool estaBorrado;
 
-    NodoHash() : clave(""), valor(-1), estaBorrado(false) {}
+    NodoHash()
+    {
+        clave = "";
+        valor = -1;
+        estaBorrado = false;
+    }
 };
 
 class HashCerrado
@@ -19,42 +25,43 @@ private:
     int largo;
     int cantidad;
 
-    // --- Funciones hash ---
-    int fhash1(const string &key) const
+    int fhash1(string key)
     {
-        unsigned long h = 0;
-        for (char c : key)
-            h = (h * 131 + (unsigned char)c) % largo;
-        return (int)h;
+        int h = 0;
+        for (int i = 0; i < key.size(); i++)
+            h = (h * 131 + (int)key[i]) % largo;
+        return h;
     }
 
-    int fhash2(const string &key) const
+    int fhash2(string key)
     {
-        unsigned long h = 0;
-        for (char c : key)
-            h = (h * 37 + (unsigned char)c) % largo;
-        int r = (int)(h * 2 + 1) % largo;
-        return (r == 0) ? 1 : r; // evitar 0
+        int h = 0;
+        for (int i = 0; i < key.size(); i++)
+            h = (h * 37 + (int)key[i]) % largo;
+        int r = (h * 2 + 1) % largo;
+        if (r == 0)
+            r = 1;
+        return r;
     }
 
-    int calcularIndice(const string &key, int intento) const
+    int calcularIndice(string key, int intento)
     {
         return abs((fhash1(key) + intento * fhash2(key)) % largo);
     }
 
-    bool esPrimo(int num) const
+    bool esPrimo(int n)
     {
-        if (num < 2)
+        if (n < 2)
             return false;
-        if (num % 2 == 0)
-            return num == 2;
-        for (int i = 3; i * i <= num; i += 2)
-            if (num % i == 0)
+        if (n % 2 == 0)
+            return n == 2;
+        for (int i = 3; i * i <= n; i += 2)
+            if (n % i == 0)
                 return false;
         return true;
     }
 
-    int primoSup(int n) const
+    int primoSuperior(int n)
     {
         while (!esPrimo(n))
             n++;
@@ -64,7 +71,7 @@ private:
 public:
     HashCerrado(int tamAprox = 200000)
     {
-        largo = primoSup(tamAprox);
+        largo = primoSuperior(tamAprox);
         tabla = new NodoHash[largo];
         cantidad = 0;
     }
@@ -74,26 +81,26 @@ public:
         delete[] tabla;
     }
 
-    void insertar(const string &key, int valor)
+    void insertar(string key, int valor)
     {
         int intento = 0;
         int pos = calcularIndice(key, intento);
         int primerBorrado = -1;
 
-        while (!tabla[pos].clave.empty())
+        while (tabla[pos].clave != "")
         {
-            if (tabla[pos].clave == key && !tabla[pos].estaBorrado)
+            if (tabla[pos].clave == key && tabla[pos].estaBorrado == false)
             {
                 tabla[pos].valor = valor;
                 return;
             }
             if (tabla[pos].estaBorrado && primerBorrado == -1)
                 primerBorrado = pos;
+
             intento++;
             pos = calcularIndice(key, intento);
         }
 
-        // Si hay un borrado reutilizable
         if (primerBorrado != -1)
             pos = primerBorrado;
 
@@ -103,14 +110,14 @@ public:
         cantidad++;
     }
 
-    int buscar(const string &key) const
+    int buscar(string key)
     {
         int intento = 0;
         int pos = calcularIndice(key, intento);
 
-        while (!tabla[pos].clave.empty())
+        while (tabla[pos].clave != "")
         {
-            if (!tabla[pos].estaBorrado && tabla[pos].clave == key)
+            if (tabla[pos].clave == key && tabla[pos].estaBorrado == false)
                 return tabla[pos].valor;
             intento++;
             pos = calcularIndice(key, intento);
@@ -118,14 +125,14 @@ public:
         return -1;
     }
 
-    void borrar(const string &key)
+    void borrar(string key)
     {
         int intento = 0;
         int pos = calcularIndice(key, intento);
 
-        while (!tabla[pos].clave.empty())
+        while (tabla[pos].clave != "")
         {
-            if (!tabla[pos].estaBorrado && tabla[pos].clave == key)
+            if (tabla[pos].clave == key && tabla[pos].estaBorrado == false)
             {
                 tabla[pos].estaBorrado = true;
                 cantidad--;
@@ -134,10 +141,5 @@ public:
             intento++;
             pos = calcularIndice(key, intento);
         }
-    }
-
-    int tamano() const
-    {
-        return cantidad;
     }
 };
