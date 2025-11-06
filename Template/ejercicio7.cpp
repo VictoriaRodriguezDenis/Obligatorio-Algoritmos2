@@ -9,9 +9,6 @@ int main()
 
     int n;
     cin >> n;
-    if (n <= 0 || n > MAXN)
-        return 1;
-
     string *oficial = new string[n];
     string *ayudante = new string[n];
     int *indices = new int[n];
