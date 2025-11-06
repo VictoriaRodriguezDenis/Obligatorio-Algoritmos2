@@ -1,39 +1,52 @@
-#include <iostream>
 #include <string>
-#include "tads/ejercicio7/RankingInversiones.cpp"
+#include <iostream>
+#include "tads\ejercicio7\AVLRanking.cpp"
 using namespace std;
-
-const int MAXN = 100000;
-
-// Mapea el nombre del ayudante al índice en el ranking oficial
-int buscarIndice(string rankingOficial[], int n, const string &nombre)
-{
-    for (int i = 0; i < n; i++)
-        if (rankingOficial[i] == nombre)
-            return i;
-    return -1;
-}
-
 int main()
 {
     int n;
-    cin >> n;
+    if (!(cin >> n) || n <= 0 || n > MAXN)
+    {
+        return 1;
+    }
 
-    string rankingOficial[MAXN];
-    string rankingAyudante[MAXN];
-    int arr[MAXN];
+    static string rankingOficial[MAXN];
+    static string rankingAyudante[MAXN];
+    static int ordenNumerico[MAXN];
 
+    // Leer ranking oficial
     for (int i = 0; i < n; i++)
-        cin >> rankingOficial[i];
+    {
+        if (!(cin >> rankingOficial[i]))
+        {
+            return 1;
+        }
+    }
 
+    // Leer ranking del ayudante
     for (int i = 0; i < n; i++)
-        cin >> rankingAyudante[i];
+    {
+        if (!(cin >> rankingAyudante[i]))
+        {
+            return 1;
+        }
+    }
 
-    // Convertir el ranking del ayudante a índices numéricos según el ranking oficial
+    // Convertir el ranking del ayudante a posiciones numéricas
+    // según el ranking oficial
     for (int i = 0; i < n; i++)
-        arr[i] = buscarIndice(rankingOficial, n, rankingAyudante[i]);
+    {
+        ordenNumerico[i] = buscarIndice(rankingOficial, n, rankingAyudante[i]);
+        if (ordenNumerico[i] == -1)
+        {
+            return 1; // Nombre no encontrado
+        }
+    }
 
-    // Calcular el número de inversiones (pares invertidos)
-    cout << contarInversiones(arr, n) << endl;
+    // Contar inversiones usando Divide and Conquer (Merge Sort modificado)
+    long long inversiones = contarInversiones(ordenNumerico, n);
+
+    cout << inversiones << endl;
+
     return 0;
 }
