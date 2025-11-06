@@ -1,29 +1,44 @@
-#include <iostream>
 #include <string>
+#include <iostream>
 #include "tads\ejercicio7\AVLRanking.cpp"
 using namespace std;
-
-int main()
-{
+int main() {
     int n;
-    cin >> n;
+    if (!(cin >> n) || n <= 0 || n > MAXN) {
+        return 1;
+    }
 
-    string rankingOficial[MAXN];
-    string rankingAyudante[MAXN];
-    int ordenNumerico[MAXN];
+    static string rankingOficial[MAXN];
+    static string rankingAyudante[MAXN];
+    static int ordenNumerico[MAXN];
 
-    for (int i = 0; i < n; i++)
-        cin >> rankingOficial[i];
-    for (int i = 0; i < n; i++)
-        cin >> rankingAyudante[i];
+    // Leer ranking oficial
+    for (int i = 0; i < n; i++) {
+        if (!(cin >> rankingOficial[i])) {
+            return 1;
+        }
+    }
 
-    for (int i = 0; i < n; i++)
+    // Leer ranking del ayudante
+    for (int i = 0; i < n; i++) {
+        if (!(cin >> rankingAyudante[i])) {
+            return 1;
+        }
+    }
+
+    // Convertir el ranking del ayudante a posiciones numéricas
+    // según el ranking oficial
+    for (int i = 0; i < n; i++) {
         ordenNumerico[i] = buscarIndice(rankingOficial, n, rankingAyudante[i]);
+        if (ordenNumerico[i] == -1) {
+            return 1; // Nombre no encontrado
+        }
+    }
 
-    repAVL arbol;
-    for (int i = n - 1; i >= 0; i--)
-        arbol.insertar(ordenNumerico[i]);
+    // Contar inversiones usando Divide and Conquer (Merge Sort modificado)
+    long long inversiones = contarInversiones(ordenNumerico, n);
 
-    cout << arbol.obtenerInversiones() << endl;
+    cout << inversiones << endl;
+
     return 0;
 }

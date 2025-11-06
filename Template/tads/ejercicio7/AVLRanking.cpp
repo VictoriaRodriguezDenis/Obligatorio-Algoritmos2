@@ -4,150 +4,68 @@ using namespace std;
 
 const int MAXN = 100000;
 
-class NodoAVL
-{
-public:
-    int id; // valor (índice en el ranking oficial)
-    NodoAVL *izq;
-    NodoAVL *der;
-    int altura;
-    int cantNodos; // tamaño del subárbol
+// Función auxiliar para hacer merge y contar inversiones
+long long mergeAndCount(int arr[], int temp[], int izq, int mid, int der) {
+    int i = izq;    // índice para subarray izquierdo
+    int j = mid + 1; // índice para subarray derecho
+    int k = izq;    // índice para array temporal
+    long long inv_count = 0;
 
-    NodoAVL(int unId)
-        : id(unId), izq(NULL), der(NULL), altura(1), cantNodos(1) {}
-};
-
-class repAVL
-{
-private:
-    NodoAVL *raiz;
-    long long inversionesTotales;
-
-    int max(int a, int b)
-    {
-        return a > b ? a : b;
-    }
-
-    int altura(NodoAVL *n)
-    {
-        return n ? n->altura : 0;
-    }
-
-    int cantNodos(NodoAVL *n)
-    {
-        return n ? n->cantNodos : 0;
-    }
-
-    int balance(NodoAVL *n)
-    {
-        return n ? altura(n->izq) - altura(n->der) : 0;
-    }
-
-    NodoAVL *rotacionHoraria(NodoAVL *A)
-    {
-        NodoAVL *B = A->izq;
-        NodoAVL *T2 = B->der;
-        B->der = A;
-        A->izq = T2;
-        actualizar(A);
-        actualizar(B);
-        return B;
-    }
-
-    NodoAVL *rotacionAntiHoraria(NodoAVL *B)
-    {
-        NodoAVL *A = B->der;
-        NodoAVL *T2 = A->izq;
-        A->izq = B;
-        B->der = T2;
-        actualizar(B);
-        actualizar(A);
-        return A;
-    }
-
-    void actualizar(NodoAVL *n)
-    {
-        if (n)
-        {
-            n->altura = 1 + max(altura(n->izq), altura(n->der));
-            n->cantNodos = 1 + cantNodos(n->izq) + cantNodos(n->der);
+    // Mientras hay elementos en ambos subarrays
+    while (i <= mid && j <= der) {
+        if (arr[i] <= arr[j]) {
+            temp[k++] = arr[i++];
+        } else {
+            // arr[i] > arr[j], entonces hay inversiones
+            // Todos los elementos desde i hasta mid son mayores que arr[j]
+            temp[k++] = arr[j++];
+            inv_count += (mid - i + 1);
         }
     }
 
-    NodoAVL *insertarEnAVL(NodoAVL *nodo, int id)
-    {
-        if (!nodo)
-            return new NodoAVL(id);
+    // Copiar elementos restantes del subarray izquierdo
+    while (i <= mid)
+        temp[k++] = arr[i++];
 
-        if (id < nodo->id)
-        {
-            nodo->izq = insertarEnAVL(nodo->izq, id);
-        }
-        else
-        {
-            // Cada vez que inserto un valor mayor, cuento los de la izquierda + el nodo
-            inversionesTotales += cantNodos(nodo->izq) + 1;
-            nodo->der = insertarEnAVL(nodo->der, id);
-        }
+    // Copiar elementos restantes del subarray derecho
+    while (j <= der)
+        temp[k++] = arr[j++];
 
-        actualizar(nodo);
+    // Copiar el array temporal de vuelta al original
+    for (i = izq; i <= der; i++)
+        arr[i] = temp[i];
 
-        int balanceo = balance(nodo);
-        bool desbIzq = balanceo > 1;
-        bool desbDer = balanceo < -1;
+    return inv_count;
+}
 
-        if (desbIzq && id < nodo->izq->id)
-            return rotacionHoraria(nodo);
-        if (desbDer && id > nodo->der->id)
-            return rotacionAntiHoraria(nodo);
-        if (desbIzq && id > nodo->izq->id)
-        {
-            nodo->izq = rotacionAntiHoraria(nodo->izq);
-            return rotacionHoraria(nodo);
-        }
-        if (desbDer && id < nodo->der->id)
-        {
-            nodo->der = rotacionHoraria(nodo->der);
-            return rotacionAntiHoraria(nodo);
-        }
+// Función recursiva de Divide and Conquer
+long long mergeSortAndCount(int arr[], int temp[], int izq, int der) {
+    long long inv_count = 0;
+    
+    if (izq < der) {
+        int mid = izq + (der - izq) / 2;
 
-        return nodo;
+        // Contar inversiones en la mitad izquierda
+        inv_count += mergeSortAndCount(arr, temp, izq, mid);
+
+        // Contar inversiones en la mitad derecha
+        inv_count += mergeSortAndCount(arr, temp, mid + 1, der);
+
+        // Contar inversiones al hacer merge
+        inv_count += mergeAndCount(arr, temp, izq, mid, der);
     }
 
-    void borrarNodo(NodoAVL *n)
-    {
-        if (!n)
-            return;
-        borrarNodo(n->izq);
-        borrarNodo(n->der);
-        delete n;
-    }
+    return inv_count;
+}
 
-public:
-    repAVL()
-    {
-        raiz = NULL;
-        inversionesTotales = 0;
-    }
+// Función principal para contar inversiones
+long long contarInversiones(int arr[], int n) {
+    static int temp[MAXN];
+    return mergeSortAndCount(arr, temp, 0, n - 1);
+}
 
-    ~repAVL()
-    {
-        borrarNodo(raiz);
-    }
-
-    void insertar(int id)
-    {
-        raiz = insertarEnAVL(raiz, id);
-    }
-
-    long long obtenerInversiones()
-    {
-        return inversionesTotales;
-    }
-};
-
-int buscarIndice(string rankingOficial[], int n, const string &nombre)
-{
+// Buscar el índice de un nombre en el ranking oficial
+int buscarIndice(string rankingOficial[], int n, const string &nombre) {
     for (int i = 0; i < n; i++)
         if (rankingOficial[i] == nombre)
             return i;
