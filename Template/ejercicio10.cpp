@@ -4,37 +4,51 @@ using namespace std;
 
 int main()
 {
-    char caracter;
-    cin >> caracter;
+    char productoBuscado;
+    cin >> productoBuscado;
 
-    int cantidad;
-    cin >> cantidad;
+    int cantidadCentros;
+    cin >> cantidadCentros;
 
     int mejorCentro = -1;
-    int pasosMin = -1;
+    int mejorPasos = -1;
 
-    for (int idx = 1; idx <= cantidad; idx++)
+    for (int indice = 1; indice <= cantidadCentros; indice++)
     {
-        int filas, columnas;
-        cin >> filas >> columnas;
+        int cantFilas, cantCols;
+        cin >> cantFilas >> cantCols;
 
-        char mapa[MAXF][MAXC];
-        for (int f = 0; f < filas; f++)
-            for (int c = 0; c < columnas; c++)
+        // Crear mapa dinámico de chars
+        char **mapa = new char *[cantFilas];
+        for (int f = 0; f < cantFilas; f++)
+        {
+            mapa[f] = new char[cantCols];
+        }
+
+        // Leer el mapa
+        for (int f = 0; f < cantFilas; f++)
+            for (int c = 0; c < cantCols; c++)
                 cin >> mapa[f][c];
 
-        int pasos = resolverCentro(caracter, mapa, filas, columnas);
+        // Resolver este FC
+        int pasos = buscarProducto(productoBuscado, mapa, cantFilas, cantCols);
 
+        // Guardar el mejor
         if (pasos != -1)
         {
-            if (pasosMin == -1 || pasos < pasosMin)
+            if (mejorPasos == -1 || pasos < mejorPasos)
             {
-                pasosMin = pasos;
-                mejorCentro = idx;
+                mejorPasos = pasos;
+                mejorCentro = indice;
             }
         }
+
+        // Liberar memoria del mapa
+        for (int f = 0; f < cantFilas; f++)
+            delete[] mapa[f];
+        delete[] mapa;
     }
 
-    cout << mejorCentro << " " << pasosMin << endl;
+    cout << mejorCentro << " " << mejorPasos << endl;
     return 0;
 }
