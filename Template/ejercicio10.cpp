@@ -1,41 +1,40 @@
 #include <iostream>
-#include "tads/ejercicio10/backtracking.cpp"
-
+#include "tads/ejercicio10/backtrackingAmazon.cpp"
 using namespace std;
 
 int main()
 {
-    char buscado;
-    cin >> buscado;
+    char caracter;
+    cin >> caracter;
 
-    int P;
-    cin >> P;
+    int cantidad;
+    cin >> cantidad;
 
-    int mejorIndice = -1;
-    int mejorPasos = -1;
+    int mejorCentro = -1;
+    int pasosMin = -1;
 
-    for (int k = 1; k <= P; k++)
+    for (int idx = 1; idx <= cantidad; idx++)
     {
-        int M, N;
-        cin >> M >> N;
+        int filas, columnas;
+        cin >> filas >> columnas;
 
-        char mapa[55][55];
-        for (int i = 0; i < M; i++)
-            for (int j = 0; j < N; j++)
-                cin >> mapa[i][j];
+        char mapa[MAXF][MAXC];
+        for (int f = 0; f < filas; f++)
+            for (int c = 0; c < columnas; c++)
+                cin >> mapa[f][c];
 
-        int pasos = resolverFC(buscado, mapa, M, N);
+        int pasos = resolverCentro(caracter, mapa, filas, columnas);
 
         if (pasos != -1)
         {
-            if (mejorPasos == -1 || pasos < mejorPasos)
+            if (pasosMin == -1 || pasos < pasosMin)
             {
-                mejorPasos = pasos;
-                mejorIndice = k;
+                pasosMin = pasos;
+                mejorCentro = idx;
             }
         }
     }
 
-    cout << mejorIndice << " " << mejorPasos << endl;
+    cout << mejorCentro << " " << pasosMin << endl;
     return 0;
 }
