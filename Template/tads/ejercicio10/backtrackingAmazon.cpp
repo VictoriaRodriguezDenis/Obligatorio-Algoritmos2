@@ -6,32 +6,34 @@ using namespace std;
 
 struct Punto
 {
-    int fila, col;
+    int f, c;
 };
 
 int df[4] = {-1, 1, 0, 0};
 int dc[4] = {0, 0, -1, 1};
 
-bool dentro(int f, int c, int filas, int columnas)
+bool dentro(int f, int c, int F, int C)
 {
-    return f >= 0 && c >= 0 && f < filas && c < columnas;
+    return f >= 0 && c >= 0 && f < F && c < C;
 }
 
-void bfsMinimo(char mapa[MAXF][MAXC], int distancias[MAXF][MAXC],
-               Punto meta, int filas, int columnas)
+// =====================================================
+// Preprocesamiento mínimo (distancias desde la meta)
+// =====================================================
+void calcularDist(char mapa[MAXF][MAXC],
+                  int dist[MAXF][MAXC],
+                  Punto meta, int F, int C)
 {
-    int qf[MAXF * MAXC];
-    int qc[MAXF * MAXC];
+    int qf[MAXF * MAXC], qc[MAXF * MAXC];
     int ini = 0, fin = 0;
 
-    // reset distancias
-    for (int f = 0; f < filas; f++)
-        for (int c = 0; c < columnas; c++)
-            distancias[f][c] = -1;
+    for (int i = 0; i < F; i++)
+        for (int j = 0; j < C; j++)
+            dist[i][j] = -1;
 
-    distancias[meta.fila][meta.col] = 0;
-    qf[fin] = meta.fila;
-    qc[fin] = meta.col;
+    dist[meta.f][meta.c] = 0;
+    qf[fin] = meta.f;
+    qc[fin] = meta.c;
     fin++;
 
     while (ini < fin)
@@ -45,15 +47,15 @@ void bfsMinimo(char mapa[MAXF][MAXC], int distancias[MAXF][MAXC],
             int nf = f + df[k];
             int nc = c + dc[k];
 
-            if (!dentro(nf, nc, filas, columnas))
+            if (!dentro(nf, nc, F, C))
                 continue;
 
-            char celda = mapa[nf][nc];
+            char cel = mapa[nf][nc];
 
-            if ((celda == 'C' || celda == mapa[meta.fila][meta.col]) &&
-                distancias[nf][nc] == -1)
+            if ((cel == 'C' || cel == mapa[meta.f][meta.c]) &&
+                dist[nf][nc] == -1)
             {
-                distancias[nf][nc] = distancias[f][c] + 1;
+                dist[nf][nc] = dist[f][c] + 1;
                 qf[fin] = nf;
                 qc[fin] = nc;
                 fin++;
@@ -62,91 +64,90 @@ void bfsMinimo(char mapa[MAXF][MAXC], int distancias[MAXF][MAXC],
     }
 }
 
-bool btLimite(int f, int c,
-              int limiteProf,
-              char mapa[MAXF][MAXC],
-              int distancias[MAXF][MAXC],
-              bool camino[MAXF][MAXC],
-              int pasos,
-              Punto meta,
-              int filas, int columnas)
+// =====================================================
+//      BACKTRACKING ESTILO CABALLO (BT puro)
+// =====================================================
+bool BT(int f, int c,
+        int pasos, int limite,
+        char mapa[MAXF][MAXC],
+        int dist[MAXF][MAXC],
+        bool visit[MAXF][MAXC],
+        Punto meta, int F, int C)
 {
-    // poda heurística básica
-    if (distancias[f][c] == -1)
-        return false;
-
-    if (pasos + distancias[f][c] > limiteProf)
-        return false;
-
-    // atajo
-    if (f == meta.fila && c == meta.col)
+    // ¿Llegó?
+    if (f == meta.f && c == meta.c)
         return true;
 
-    if (distancias[f][c] == 1 && pasos + 1 <= limiteProf)
-        return true;
+    // podas suaves y simples
+    if (dist[f][c] == -1)
+        return false;
+    if (pasos + dist[f][c] > limite)
+        return false;
 
+    // probar 4 movimientos como el caballo prueba 8
     for (int k = 0; k < 4; k++)
     {
         int nf = f + df[k];
         int nc = c + dc[k];
 
-        if (!dentro(nf, nc, filas, columnas))
+        if (!dentro(nf, nc, F, C))
             continue;
 
-        char celda = mapa[nf][nc];
-        if (celda != 'C' && celda != mapa[meta.fila][meta.col])
+        char cel = mapa[nf][nc];
+
+        if (cel != 'C' && cel != mapa[meta.f][meta.c])
             continue;
 
-        if (!camino[nf][nc])
+        if (!visit[nf][nc])
         {
-            camino[nf][nc] = true;
+            visit[nf][nc] = true;
 
-            if (btLimite(nf, nc, limiteProf,
-                         mapa, distancias, camino,
-                         pasos + 1, meta, filas, columnas))
+            if (BT(nf, nc, pasos + 1, limite,
+                   mapa, dist, visit,
+                   meta, F, C))
                 return true;
 
-            camino[nf][nc] = false;
+            visit[nf][nc] = false;
         }
     }
 
     return false;
 }
 
-int resolverCentro(char caracter, char mapa[MAXF][MAXC],
-                   int filas, int columnas)
+// =====================================================
+//                 RESOLVER UN CENTRO
+// =====================================================
+int resolverCentro(char objetivo,
+                   char mapa[MAXF][MAXC],
+                   int F, int C)
 {
-    Punto meta = {-1, -1};
-
-    // buscar producto
-    for (int f = 0; f < filas; f++)
-        for (int c = 0; c < columnas; c++)
-            if (mapa[f][c] == caracter)
+    // buscar meta
+    Punto meta{-1, -1};
+    for (int f = 0; f < F; f++)
+        for (int c = 0; c < C; c++)
+            if (mapa[f][c] == objetivo)
                 meta = {f, c};
 
-    if (meta.fila == -1)
+    if (meta.f == -1)
         return -1;
 
-    int distancias[MAXF][MAXC];
-    bfsMinimo(mapa, distancias, meta, filas, columnas);
+    int dist[MAXF][MAXC];
+    calcularDist(mapa, dist, meta, F, C);
 
-    if (distancias[0][0] == -1)
+    if (dist[0][0] == -1)
         return -1;
 
-    bool camino[MAXF][MAXC];
-    for (int f = 0; f < filas; f++)
-        for (int c = 0; c < columnas; c++)
-            camino[f][c] = false;
+    bool visit[MAXF][MAXC];
+    for (int f = 0; f < F; f++)
+        for (int c = 0; c < C; c++)
+            visit[f][c] = false;
 
-    camino[0][0] = true;
+    visit[0][0] = true;
 
-    int minimo = distancias[0][0];
+    int limite = dist[0][0] + 20; // margen fijo simple
 
-    // IDDFS más simple (no tan agresivo como antes)
-    for (int limite = minimo; limite <= minimo + 150; limite++)
-        if (btLimite(0, 0, limite, mapa, distancias, camino,
-                     0, meta, filas, columnas))
-            return limite;
+    if (BT(0, 0, 0, limite, mapa, dist, visit, meta, F, C))
+        return limite;
 
     return -1;
 }
