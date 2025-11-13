@@ -1,4 +1,3 @@
-#include <string>
 #include <iostream>
 #include "tads/ejercicio10/backtracking.cpp"
 
@@ -17,7 +16,6 @@ int main()
 
     for (int k = 1; k <= P; k++)
     {
-
         int M, N;
         cin >> M >> N;
 

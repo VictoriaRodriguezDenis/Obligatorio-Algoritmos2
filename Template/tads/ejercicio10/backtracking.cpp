@@ -2,8 +2,12 @@
 using namespace std;
 
 /*
-    BFS + Backtracking SIN STL
-    Todo hecho a mano: cola propia, matrices estáticas, podas fuertes.
+    BFS + IDDFS Backtracking hiper-optimizado.
+    - BFS manual sin STL
+    - Backtracking con poda A*
+    - Iterative Deepening para cortar ramas eternas
+    - Orden dinámico de movimientos según BFS
+    - Atajo dist=1
 */
 
 struct Punto
@@ -11,22 +15,25 @@ struct Punto
     int i, j;
 };
 
+int gi[4] = {-1, 1, 0, 0};
+int gj[4] = {0, 0, -1, 1};
+
 bool esValido(int i, int j, int M, int N)
 {
     return i >= 0 && j >= 0 && i < M && j < N;
 }
 
 /* ===========================================================
-   BFS MANUAL → Llenar distancias mínimas al objetivo
+   BFS MANUAL (sin STL)
    =========================================================== */
 void bfsDistancias(char mapa[55][55], int dist[55][55],
                    Punto objetivo, int M, int N)
 {
     // Cola manual
-    Punto cola[3000];
+    Punto cola[3500];
     int ini = 0, fin = 0;
 
-    // Inicializo distancias
+    // Reset distancias
     for (int i = 0; i < M; i++)
         for (int j = 0; j < N; j++)
             dist[i][j] = -1;
@@ -34,91 +41,99 @@ void bfsDistancias(char mapa[55][55], int dist[55][55],
     dist[objetivo.i][objetivo.j] = 0;
     cola[fin++] = objetivo;
 
-    int di[4] = {-1, 1, 0, 0};
-    int dj[4] = {0, 0, -1, 1};
-
     while (ini < fin)
     {
         Punto p = cola[ini++];
+
         for (int k = 0; k < 4; k++)
         {
-            int ni = p.i + di[k];
-            int nj = p.j + dj[k];
+            int ni = p.i + gi[k];
+            int nj = p.j + gj[k];
 
-            if (esValido(ni, nj, M, N))
+            if (!esValido(ni, nj, M, N))
+                continue;
+
+            char c = mapa[ni][nj];
+            if ((c == 'C' || c == mapa[objetivo.i][objetivo.j]) &&
+                dist[ni][nj] == -1)
             {
-                char c = mapa[ni][nj];
-                if ((c == 'C' || c == mapa[objetivo.i][objetivo.j]) &&
-                    dist[ni][nj] == -1)
-                {
-                    dist[ni][nj] = dist[p.i][p.j] + 1;
-                    cola[fin++] = {ni, nj};
-                }
+                dist[ni][nj] = dist[p.i][p.j] + 1;
+                cola[fin++] = {ni, nj};
             }
         }
     }
 }
 
 /* ===========================================================
-   BACKTRACKING + PODAS
+   BACKTRACKING CON PODAS + IDDFS
    =========================================================== */
-void bt(int i, int j,
-        char mapa[55][55],
-        int dist[55][55],
-        bool visit[55][55],
-        int pasosActual,
-        int &mejorSol,
-        Punto objetivo,
-        int M, int N)
+bool btDepthLimit(int i, int j,
+                  int depthLimit,
+                  char mapa[55][55],
+                  int dist[55][55],
+                  bool visit[55][55],
+                  int pasosActual,
+                  Punto objetivo,
+                  int M, int N)
 {
-    // poda 1: ya peor que una solución existente
-    if (mejorSol != -1 && pasosActual >= mejorSol)
-        return;
+    // A* pruning
+    if (pasosActual + dist[i][j] > depthLimit)
+        return false;
 
-    // poda 2: BFS indica que no existe camino desde aquí
+    // dist -1 no tiene camino
     if (dist[i][j] == -1)
-        return;
+        return false;
 
-    // poda 3: heurística exacta → pasosActual + dist > mejorSol
-    if (mejorSol != -1 && pasosActual + dist[i][j] > mejorSol)
-        return;
+    // si estoy a 1 paso → corto y gano
+    if (dist[i][j] == 1 && pasosActual + 1 <= depthLimit)
+        return true;
 
-    // ¿Llegué?
+    // ¿Objetivo?
     if (i == objetivo.i && j == objetivo.j)
-    {
-        if (mejorSol == -1 || pasosActual < mejorSol)
-            mejorSol = pasosActual;
-        return;
-    }
+        return true;
 
-    int di[4] = {-1, 1, 0, 0};
-    int dj[4] = {0, 0, -1, 1};
+    // Orden dinámico de movimientos: probar primero los más cerca según BFS
+    int ord[4] = {0, 1, 2, 3};
+    for (int a = 0; a < 4; a++)
+        for (int b = a + 1; b < 4; b++)
+            if (dist[i + gi[ord[b]]][j + gj[ord[b]]] <
+                dist[i + gi[ord[a]]][j + gj[ord[a]]])
+            {
+                int t = ord[a];
+                ord[a] = ord[b];
+                ord[b] = t;
+            }
 
-    for (int k = 0; k < 4; k++)
+    for (int z = 0; z < 4; z++)
     {
-        int ni = i + di[k];
-        int nj = j + dj[k];
+        int k = ord[z];
+        int ni = i + gi[k];
+        int nj = j + gj[k];
 
         if (!esValido(ni, nj, M, N))
             continue;
 
         char c = mapa[ni][nj];
-
         if (c != 'C' && c != mapa[objetivo.i][objetivo.j])
             continue;
 
         if (!visit[ni][nj])
         {
             visit[ni][nj] = true;
-            bt(ni, nj, mapa, dist, visit, pasosActual + 1,
-               mejorSol, objetivo, M, N);
+
+            if (btDepthLimit(ni, nj, depthLimit,
+                             mapa, dist, visit, pasosActual + 1,
+                             objetivo, M, N))
+                return true;
+
             visit[ni][nj] = false;
         }
     }
+    return false;
 }
 
 /* ===========================================================
-   RESOLVER UN FC COMPLETO
+   RESOLVER UN MAPA COMPLETO (IDDFS)
    =========================================================== */
 int resolverFC(char buscado, char mapa[55][55], int M, int N)
 {
@@ -133,24 +148,30 @@ int resolverFC(char buscado, char mapa[55][55], int M, int N)
     if (objetivo.i == -1)
         return -1;
 
-    // BFS manual de distancias
+    // BFS mínima
     int dist[55][55];
     bfsDistancias(mapa, dist, objetivo, M, N);
 
-    // Si no existe camino desde 0,0 → descartar
     if (dist[0][0] == -1)
-        return -1;
+        return -1; // imposible
 
-    // Backtracking
+    // IDDFS
     bool visit[55][55];
     for (int i = 0; i < M; i++)
         for (int j = 0; j < N; j++)
             visit[i][j] = false;
 
-    int mejorSol = -1;
     visit[0][0] = true;
 
-    bt(0, 0, mapa, dist, visit, 0, mejorSol, objetivo, M, N);
+    // límite inferior = BFS
+    int minimo = dist[0][0];
 
-    return mejorSol;
+    // límite superior = BFS + 200 por seguridad
+    for (int limite = minimo; limite <= minimo + 200; limite++)
+    {
+        if (btDepthLimit(0, 0, limite, mapa, dist, visit, 0, objetivo, M, N))
+            return limite;
+    }
+
+    return -1;
 }
