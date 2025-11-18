@@ -4,51 +4,43 @@ using namespace std;
 
 int main()
 {
-    char productoBuscado;
-    cin >> productoBuscado;
+    char producto;
+    cin >> producto;
 
-    int cantidadCentros;
-    cin >> cantidadCentros;
+    int P;
+    cin >> P;
 
     int mejorCentro = -1;
     int mejorPasos = -1;
 
-    for (int indice = 1; indice <= cantidadCentros; indice++)
+    for (int idx = 1; idx <= P; idx++)
     {
-        int cantFilas, cantCols;
-        cin >> cantFilas >> cantCols;
+        int F, C;
+        cin >> F >> C;
 
-        // Crear mapa dinámico de chars
-        char **mapa = new char *[cantFilas];
-        for (int f = 0; f < cantFilas; f++)
+        char **mapa = new char *[F];
+        for (int i = 0; i < F; i++)
+            mapa[i] = new char[C];
+
+        for (int i = 0; i < F; i++)
+            for (int j = 0; j < C; j++)
+                cin >> mapa[i][j];
+
+        int pasos = resolverFC(producto, mapa, F, C);
+
+        if (pasos != -1 &&
+            (mejorPasos == -1 || pasos < mejorPasos))
         {
-            mapa[f] = new char[cantCols];
+            mejorPasos = pasos;
+            mejorCentro = idx;
         }
 
-        // Leer el mapa
-        for (int f = 0; f < cantFilas; f++)
-            for (int c = 0; c < cantCols; c++)
-                cin >> mapa[f][c];
-
-        // Resolver este FC
-        int pasos = buscarProducto(productoBuscado, mapa, cantFilas, cantCols);
-
-        // Guardar el mejor
-        if (pasos != -1)
-        {
-            if (mejorPasos == -1 || pasos < mejorPasos)
-            {
-                mejorPasos = pasos;
-                mejorCentro = indice;
-            }
-        }
-
-        // Liberar memoria del mapa
-        for (int f = 0; f < cantFilas; f++)
-            delete[] mapa[f];
+        for (int i = 0; i < F; i++)
+            delete[] mapa[i];
         delete[] mapa;
     }
 
-    cout << mejorCentro << " " << mejorPasos << endl;
+    cout << mejorCentro << " " << mejorPasos;
+
     return 0;
 }
