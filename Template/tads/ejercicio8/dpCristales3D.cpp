@@ -10,7 +10,7 @@ long long miMax(long long a, long long b)
     return (a > b ? a : b);
 }
 
-// DP top-down con memorización
+// DP top-down con memoización
 long long calcMemo(int izq, int der, int extras, int N)
 {
     if (izq > der)
