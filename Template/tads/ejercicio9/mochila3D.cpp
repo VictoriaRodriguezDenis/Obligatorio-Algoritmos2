@@ -1,59 +1,86 @@
-using namespace std;
 #include <iostream>
+using namespace std;
 
+class Elemento
+{
+public:
+    int tamano; // tamaño del archivo (MB)
+    int lineas; // cant. líneas del archivo
+    int puntos; // puntaje del ejercicio
 
-class Elemento {
-    public:
-        int tamano;   // tamaño del archivo (en 2D es peso)
-        int lineas;   // cantidad de líneas del archivo (nueva restricción)
-        int puntos;   // puntaje del ejercicio (en 2D es el valor)
-
-        Elemento(int tamano, int lineas, int puntos) : tamano(tamano), lineas(lineas), puntos(puntos){}
+    Elemento(int t, int l, int p) : tamano(t), lineas(l), puntos(p) {}
 };
 
-void mochilaDP(Elemento** elementos, int cantElementos, int S, int L){
-    // Matriz 3D: [elementos][tamaño+1][líneas+1]
-    int*** matDP = new int**[cantElementos];
-    for (int i = 0; i < cantElementos; i++) {
-        matDP[i] = new int*[S+1];
-        for (int j = 0; j <= S; j++) {
-            matDP[i][j] = new int[L+1];
+// -------------------------------------------------------
+//  max propio (sin <algorithm>)
+// -------------------------------------------------------
+int miMax(int a, int b)
+{
+    return (a > b ? a : b);
+}
+
+// -------------------------------------------------------
+//  DP 3D — Tabulación O(N * S * L)
+// -------------------------------------------------------
+void mochilaDP(Elemento **elementos, int N, int S, int L)
+{
+    // dp[i][j][k] → usando los primeros i elementos,
+    // con j MB y k líneas → máximo puntaje
+    int ***dp = new int **[N + 1];
+
+    for (int i = 0; i <= N; i++)
+    {
+        dp[i] = new int *[S + 1];
+        for (int j = 0; j <= S; j++)
+        {
+            dp[i][j] = new int[L + 1];
+
+            for (int k = 0; k <= L; k++)
+                dp[i][j][k] = 0; // caso base: 0 puntos
         }
     }
-    
-    // Inicializar todo en 0
-    for (int i = 0; i < cantElementos; i++) {
-        for (int j = 0; j <= S; j++) {
-            for (int k = 0; k <= L; k++) {
-                matDP[i][j][k] = 0;
-            }
-        }
-    }
-    
-    // Primera "capa" (elemento 0)
-    for (int j = 0; j <= S; j++) {
-        for (int k = 0; k <= L; k++) {
-            if (j >= elementos[0]->tamano && k >= elementos[0]->lineas) {
-                matDP[0][j][k] = elementos[0]->puntos;
-            }
-        }
-    }
-    
-    // El resto 
-    for (int i = 1; i < cantElementos; i++) {
-        for (int j = 0; j <= S; j++) {
-            for (int k = 0; k <= L; k++) {
-                // No incluir el elemento i
-                matDP[i][j][k] = matDP[i-1][j][k];
-                
-                // Incluir el elemento i (si cabe)
-                if (j >= elementos[i]->tamano && k >= elementos[i]->lineas) {
-                    matDP[i][j][k] = max(matDP[i][j][k], elementos[i]->puntos + matDP[i-1][j - elementos[i]->tamano][k - elementos[i]->lineas]
-                    );
+
+    // ---------------------------------------------------
+    // Tabulación: vamos cargando dp fila por fila
+    // ---------------------------------------------------
+    for (int i = 1; i <= N; i++)
+    {
+
+        int t = elementos[i - 1]->tamano;
+        int ln = elementos[i - 1]->lineas;
+        int p = elementos[i - 1]->puntos;
+
+        for (int j = 0; j <= S; j++)
+        {
+            for (int k = 0; k <= L; k++)
+            {
+
+                // NO tomar el elemento i
+                dp[i][j][k] = dp[i - 1][j][k];
+
+                // Tomarlo (si entra)
+                if (j >= t && k >= ln)
+                {
+                    int candidato = p + dp[i - 1][j - t][k - ln];
+                    dp[i][j][k] = miMax(dp[i][j][k], candidato);
                 }
             }
         }
     }
-    
-    cout << matDP[cantElementos-1][S][L] << endl;
+
+    // ---------------------------------------------------
+    // Resultado final
+    // ---------------------------------------------------
+    cout << dp[N][S][L] << endl;
+
+    // ---------------------------------------------------
+    // Liberar memoria
+    // ---------------------------------------------------
+    for (int i = 0; i <= N; i++)
+    {
+        for (int j = 0; j <= S; j++)
+            delete[] dp[i][j];
+        delete[] dp[i];
+    }
+    delete[] dp;
 }
