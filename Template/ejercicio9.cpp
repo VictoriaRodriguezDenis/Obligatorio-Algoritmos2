@@ -8,21 +8,28 @@ using namespace std;
 
 int main()
 {
-    int cantElementos, capacidad, tamano, lineas, puntos;
+    int cantElementos;
     cin >> cantElementos;
+
     Elemento** elementos = new Elemento*[cantElementos];
+
     for (int i = 0; i < cantElementos; i++)
     {
+        int tamano, lineas, puntos;
         cin >> tamano >> lineas >> puntos;
-        elementos[i] = new Elemento(tamano, lineas, puntos); 
+        elementos[i] = new Elemento(tamano, lineas, puntos);
     }
-    cin >> capacidad;
 
     int S, L;
     cin >> S >> L;
 
     mochilaDP(elementos, cantElementos, S, L);
-    
-    return 0;    
-}
 
+    // liberar memoria
+    for (int i = 0; i < cantElementos; i++) {
+        delete elementos[i];
+    }
+    delete[] elementos;
+
+    return 0;
+}
