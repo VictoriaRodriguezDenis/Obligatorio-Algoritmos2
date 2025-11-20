@@ -1,4 +1,3 @@
-#include <string>
 #include <iostream>
 #include "tads/ejercicio8/dpCristales3D.cpp"
 using namespace std;
@@ -8,12 +7,12 @@ int main()
     int N;
     cin >> N;
 
-    colores = new int[N];
+    int *colores = new int[N];
     for (int i = 0; i < N; i++)
         cin >> colores[i];
 
-    // crear dpMemo dinámicamente como dp[N][N][N]
-    dpMemo = new long long **[N];
+    long long ***dpMemo = new long long **[N];
+
     for (int i = 0; i < N; i++)
     {
         dpMemo[i] = new long long *[N];
@@ -25,10 +24,9 @@ int main()
         }
     }
 
-    long long ans = calcMemo(0, N - 1, 0, N);
+    long long ans = calcMemo(0, N - 1, 0, N, colores, dpMemo);
     cout << ans << "\n";
 
-    // liberar memoria
     for (int i = 0; i < N; i++)
     {
         for (int j = 0; j < N; j++)
