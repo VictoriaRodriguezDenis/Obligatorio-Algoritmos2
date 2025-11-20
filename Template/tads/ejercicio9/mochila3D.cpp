@@ -11,17 +11,12 @@ public:
     Elemento(int t, int l, int p) : tamano(t), lineas(l), puntos(p) {}
 };
 
-// -------------------------------------------------------
-//  max propio (sin <algorithm>)
-// -------------------------------------------------------
 int miMax(int a, int b)
 {
     return (a > b ? a : b);
 }
 
-// -------------------------------------------------------
 //  DP 3D — Tabulación O(N * S * L)
-// -------------------------------------------------------
 void mochilaDP(Elemento **elementos, int N, int S, int L)
 {
     // dp[i][j][k] → usando los primeros i elementos,
@@ -40,9 +35,7 @@ void mochilaDP(Elemento **elementos, int N, int S, int L)
         }
     }
 
-    // ---------------------------------------------------
     // Tabulación: vamos cargando dp fila por fila
-    // ---------------------------------------------------
     for (int i = 1; i <= N; i++)
     {
 
@@ -68,14 +61,9 @@ void mochilaDP(Elemento **elementos, int N, int S, int L)
         }
     }
 
-    // ---------------------------------------------------
-    // Resultado final
-    // ---------------------------------------------------
     cout << dp[N][S][L] << endl;
 
-    // ---------------------------------------------------
     // Liberar memoria
-    // ---------------------------------------------------
     for (int i = 0; i <= N; i++)
     {
         for (int j = 0; j <= S; j++)

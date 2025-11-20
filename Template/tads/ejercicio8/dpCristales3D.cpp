@@ -19,8 +19,7 @@ long long calcMemo(
         return memo;
 
     // Opción 1: borrar colores[der] ahora
-    long long mejor =
-        calcMemo(izq, der - 1, 0, N, colores, dpMemo) + (long long)(extras + 1) * (extras + 1);
+    long long mejor = calcMemo(izq, der - 1, 0, N, colores, dpMemo) + (long long)(extras + 1) * (extras + 1);
 
     // Opción 2: unir colores iguales (i con der)
     for (int i = izq; i < der; i++)
@@ -28,8 +27,7 @@ long long calcMemo(
         if (colores[i] == colores[der])
         {
 
-            long long unir =
-                calcMemo(izq, i, extras + 1, N, colores, dpMemo) + calcMemo(i + 1, der - 1, 0, N, colores, dpMemo);
+            long long unir = calcMemo(izq, i, extras + 1, N, colores, dpMemo) + calcMemo(i + 1, der - 1, 0, N, colores, dpMemo);
 
             mejor = miMax(mejor, unir);
         }

@@ -2,8 +2,6 @@
 #include <iostream>
 using namespace std;
 
-// Algoritmo de Divide and Conquer para contar inversiones en O(N log N)
-
 // Mezcla dos mitades ordenadas y cuenta las inversiones cruzadas
 long long combinarYContar(int arreglo[], int auxiliar[], int inicio, int medio, int fin)
 {
