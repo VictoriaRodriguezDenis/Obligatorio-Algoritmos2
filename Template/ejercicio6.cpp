@@ -7,7 +7,6 @@ int main()
     int cantPozos, cantMejoras, destino;
     cin >> cantPozos >> cantMejoras >> destino;
 
-    // Reservamos memoria exacta según las cantidades
     Pozo *pozos = new Pozo[cantPozos];
     for (int i = 0; i < cantPozos; i++)
         cin >> pozos[i].inicio >> pozos[i].fin;

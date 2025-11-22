@@ -1,315 +1,225 @@
-# 🧠 Ejercicio 7 – Ranking de Parciales
+# 🧠 Ejercicio 7 – Ranking de Parciales (versión defensa con ejemplo)
 
-## Explicación absoluta, completa y con recorrido función por función
+## 1. ¿Qué problema estamos resolviendo?
 
-## 0. ¿Qué mide exactamente este ejercicio?
+Tenemos dos rankings de estudiantes:
 
-Tenemos:
+- **El oficial** (orden correcto).
+- **El del ayudante**, que está mezclado.
 
-- Un ranking oficial (orden correcto)
-- Un ranking alternativo publicado por un ayudante
-
-Queremos contar cuántos pares de estudiantes están "dados vuelta" entre ambos rankings.
-
-Esto se llama **contar inversiones**.
+Queremos contar cuántos pares de estudiantes están “al revés” entre un ranking y otro.  
+A eso se le llama **inversiones**.
 
 Un par (A, B) es una inversión si:
 
-- En el ranking oficial: A aparece antes que B
-- En el del ayudante: B aparece antes que A
+- A aparece antes que B en el ranking oficial.
+- B aparece antes que A en el ranking del ayudante.
 
-### Ejemplo real
+## 2. ¿Cómo convertimos nombres en algo manipulable?
 
-Oficial: Ana ≺ Beto ≺ Carla ≺ Diego  
-Ayudante: Beto ≺ Ana ≺ Diego ≺ Carla
-
-Las inversiones son:
-
-- (Ana, Beto)
-- (Carla, Diego)
-
-**Total: 2.**
-
-## 1. ¿Cómo transformamos este problema en algo computable?
-
-Representamos el ranking oficial como:
-
-**nombre → posición**
+A cada estudiante le asignamos su posición oficial:
 
 Ejemplo:
 
-- Ana → 0
-- Beto → 1
-- Carla → 2
-- Diego → 3
+Oficial:
 
-Luego, el ranking del ayudante:
+```
+Ana, Beto, Carla, Diego
+```
 
+Entonces:
+
+| Nombre | Posición oficial |
+| ------ | ---------------- |
+| Ana    | 0                |
+| Beto   | 1                |
+| Carla  | 2                |
+| Diego  | 3                |
+
+Luego transformamos el ranking del ayudante usando esa tabla.
+
+Si el ayudante publica:
+
+```
 Beto, Ana, Diego, Carla
+```
 
-se transforma en:
+Se vuelve:
 
 ```
 [1, 0, 3, 2]
 ```
 
-Y el número de inversiones entre rankings es exactamente el número de inversiones del arreglo.
+Ahora el problema se reduce a:
 
-## 2. ¿Qué es una inversión en un arreglo?
+👉 **Contar inversiones en ese arreglo numérico.**
 
-Un par (i, j) es inversión si:
+## 3. ¿Qué es una inversión en un arreglo?
 
-- i < j
-- arr[i] > arr[j]
+Un par (i, j) es una inversión si:
 
-Ejemplo en `[1,0,3,2]`:
+```
+i < j  y  arr[i] > arr[j]
+```
 
-- (0,1) → 1 > 0 → inversión
-- (2,3) → 3 > 2 → inversión
+Ejemplo con:
+
+```
+[1, 0, 3, 2]
+```
+
+Inversiones:
+
+- (1 > 0) → ✓
+- (3 > 2) → ✓
 
 **Total: 2.**
 
-## 3. ¿Por qué no podemos usar fuerza bruta?
+## 4. ¿Por qué necesitamos Merge Sort modificado?
 
-Comparar todos los pares sería:
-
-```
-N^2 = 100000^2 = 10^10 operaciones
-```
-
-→ imposible.
-
-El enunciado exige **O(N log N)**.
-
-La solución clásica es **Merge Sort modificado**.
-
-## 4. Merge Sort que cuenta inversiones
-
-Merge Sort:
-
-1. Divide el arreglo en mitades
-2. Mezcla ordenadamente
-3. Durante la mezcla detecta inversiones cruzadas
-
-Regla clave:
-
-Si `izq[i] > der[j]`, entonces:
+Porque N puede ser hasta **100.000**.  
+La fuerza bruta sería:
 
 ```
-inversiones += (elementos restantes en izquierda)
+N^2 = 10^10 comparaciones → imposible
 ```
 
-Esto da el rendimiento O(N log N).
+El enunciado pide **O(N log N)** → exactamente la complejidad de Merge Sort.
 
-## 5. Recorrido TOTAL del ejemplo [1,0,3,2]
+Merge Sort permite contar inversiones en la etapa de combinación:
 
-### 5.1 Llamada principal
-
-```
-contarInversiones(indicesNumericos, N)
-```
-
-Crea auxiliar y llama a:
+Si durante la mezcla encontramos:
 
 ```
-mergeSortYContar(arr, aux, 0, 3)
+izq[i] > der[j]
 ```
 
-### 5.2 Llamada recursiva
+entonces hay **tantas inversiones como elementos quedan en la mitad izquierda**.
 
-Divide:
+Ese truco nos da la velocidad óptima.
 
-- Izquierda: `[1,0]`
-- Derecha: `[3,2]`
+## 5. Ejemplo completo paso a paso
 
-Llama:
+Arreglo a analizar:
 
 ```
-mergeSortYContar(0,1)
-mergeSortYContar(2,3)
-combinarYContar(0,1,3)
+[1, 0, 3, 2]
 ```
 
-### 5.3 Mitad izquierda: [1,0]
+### Paso 1: dividir
 
-Divide en:
+Mitad izquierda: `[1, 0]`  
+Mitad derecha: `[3, 2]`
+
+### Paso 2: resolver cada mitad
+
+#### Izquierda → `[1,0]`
+
+Se divide:
 
 - [1]
 - [0]
 
-Se mezclan:
+Al mezclar:
 
-Comparación:
+1 > 0 → inversión  
+Resultado ordenado: `[0,1]`  
+Inversiones acumuladas: **1**
 
-1 > 0 → inversión
+#### Derecha → `[3,2]`
 
-Resultado:
-
-```
-[0,1]
-inversiones = 1
-```
-
-### 5.4 Mitad derecha: [3,2]
-
-Divide en:
+Se divide:
 
 - [3]
 - [2]
 
-Comparación:
+Al mezclar:
 
-3 > 2 → inversión
+3 > 2 → inversión  
+Resultado: `[2,3]`  
+Inversiones acumuladas: **1**
 
-Resultado:
+### Paso 3: Mezcla final
 
-```
-[2,3]
-inversiones = 1
-```
+Mezclamos `[0,1]` con `[2,3]`
 
----
+No se generan inversiones porque todo está en buen orden.
 
-### 5.5 Mezcla final: [0,1] con [2,3]
+Total final = 1 + 1 = **2 inversiones**
 
-Todas las comparaciones son correctas:
+## 6. ¿Cómo encaja esto con los estudiantes?
 
-0 ≤ 2  
-1 ≤ 2  
-2 ≤ 3
+Con el ejemplo original:
 
-No hay inversiones cruzadas.
+- arr = [1,0,3,2]
+- Inversiones detectadas:
+  - (1,0) → Beto antes que Ana → está al revés respecto al oficial
+  - (3,2) → Diego antes que Carla → otro al revés
 
-**Total final = 1 + 1 + 0 = 2**
-
-## 6. Mapeo de inversiones a estudiantes
-
-Recordemos:
-
-- 0 → Ana
-- 1 → Beto
-- 2 → Carla
-- 3 → Diego
-
-Inversiones:
-
-- (1,0) → (Beto, Ana) → inversión real: **(Ana, Beto)**
-- (3,2) → (Diego, Carla) → inversión real: **(Carla, Diego)**
-
-## 7. Ejemplo 2: Ranking totalmente invertido
-
-Arreglo:
+Lo cual corresponde exactamente a:
 
 ```
-[3,2,1,0]
+(Ana, Beto)
+(Carla, Diego)
 ```
 
-Es completamente decreciente.
+## 7. Uso del Hash Cerrado
 
-Inversiones:
+Para transformar nombres en posiciones oficiales de manera eficiente, implementamos un **hash cerrado con doble hashing**, ya que el enunciado no permite usar `unordered_map`.
 
-```
-N(N-1)/2 = 6
-```
+El hash permite:
 
-Merge Sort las detecta todas.
+- Insertar: O(1) promedio
+- Buscar: O(1) promedio
 
-## 8. El Hash: cómo se insertan y buscan nombres
+Su único propósito es transformar nombres → índices numéricos.
 
-El TP exige no usar `unordered_map`.
+## 8. Flujo del programa (main)
 
-Se implementa un Hash Cerrado con doble hashing:
-
-Cada nodo:
-
-- clave (string)
-- valor (entero)
-- estaBorrado (bool)
-
-Hash:
-
-- fhash1 base 131
-- fhash2 base 37 (ajustado a impar)
-
-Insertar:
+1. Se lee N.
+2. Se carga el ranking oficial en el hash.
+3. Se lee el ranking del ayudante y se transforma en un arreglo de posiciones.
+4. Se llama:
 
 ```
-pos = (h1 + intento*h2) % largo
+contarInversiones(arreglo, N)
 ```
 
-Buscar:
+5. Se imprime el número total.
+
+## 9. Complejidad
+
+### Tiempo:
+
+- Construir Hash: **O(N)**
+- Buscar en Hash: **O(N)**
+- Merge Sort + conteo: **O(N log N)**
+
+Total:
 
 ```
-Repite índices hasta hallar clave
+O(N log N)
 ```
 
-Permite:
+### Espacio:
 
-- Insertar O(1) promedio
-- Buscar O(1) promedio
+- Hash cerrado: O(N)
+- Arreglo numérico: O(N)
+- Arreglo auxiliar: O(N)
 
-## 9. Recorrido del main
-
-```
-cin >> N;
-```
-
-Reserva arreglos.
-
-### Leer ranking oficial
+Total:
 
 ```
-tabla.insertar(nombre, posición);
+O(N)
 ```
 
-Queda:
+## 10. Resumen final (para argumentar en defensa)
 
-- Ana → 0
-- Beto → 1
-- Carla → 2
-- Diego → 3
+- Convertimos nombres en índices usando un hash cerrado eficiente.
+- El segundo ranking pasa a ser un arreglo de enteros.
+- El número de inversiones entre rankings es exactamente el número de inversiones del arreglo.
+- Usamos Merge Sort modificado para contar inversiones sin superar el tiempo requerido.
+- `long long` es obligatorio para evitar overflow.
+- Complejidad final: `O(N log N)`.
 
-### Leer ranking del ayudante
-
-```
-indicesNumericos[i] = tabla.buscar(nombre);
-```
-
-Obtiene:
-
-```
-[1,0,3,2]
-```
-
-### Contar inversiones
-
-```
-totalInversiones = contarInversiones(indicesNumericos, N);
-```
-
-### Imprimir resultado
-
-```
-cout << totalInversiones;
-```
-
----
-
-## 10. Complejidad
-
-### Tiempo
-
-- Crear hash: O(N)
-- Buscar en hash: O(N)
-- Merge Sort: O(N log N)
-
-**Total: O(N log N)**
-
-### Espacio
-
-- Hash: O(N)
-- Arreglos oficiales: O(N)
-- numérico: O(N)
-- auxiliar: O(N)
-
-**Total: O(N)**
+Con esto el ejercicio queda sólidamente armado y defendible.

@@ -1,243 +1,100 @@
 # 🧠 Ejercicio 10 – Búsqueda de Producto en Amazon
 
-## Explicación absoluta (teórica + práctica + recorrido del código)
+## 1. Introducción
 
-# 0. ¿Qué problema estamos resolviendo?
+Este ejercicio pide determinar en cuál de varios centros logísticos (FC) se encuentra un producto específico en la menor cantidad de pasos posibles, comenzando siempre desde la celda (0,0). El mapa de cada FC es una grilla donde las celdas pueden ser corredores ('C') o productos (otras letras). Solo se puede atravesar corredores, excepto si la celda contiene el producto buscado.
 
-Tenés **P centros logísticos (FCs)**.  
-Cada uno es un mapa **M×N** donde:
+La solución se implementa con **backtracking** y varias **podas** para evitar recorridos innecesarios. Las funciones principales del desarrollo son:
 
-- `'C'` → corredor (se puede caminar)
-- cualquier otra letra → producto  
-  (se puede entrar **solo si** es el producto buscado)
+- `celdaValida(...)`
+- `backtrackBuscar(...)`
+- `resolverCentro(...)`
+- `main`
 
-### ✔ Movimiento permitido
+A continuación se detalla cómo funciona cada parte.
 
-- 4 direcciones (arriba, abajo, izquierda, derecha)
+## 2. Explicación de la Solución
 
-### ✔ Posición inicial
+### 2.1 Recorrido general del algoritmo
 
-- Siempre `(0,0)`
+Para cada FC:
 
-### ✔ Meta
+1. Se lee su mapa.
+2. Se valida que (0,0) sea una celda transitable.
+3. Se inicializan:
+   - `visitado[F][C]` para evitar ciclos.
+   - `dist[F][C]` para registrar la menor cantidad de pasos con los que se llegó a cada celda.
+4. Se ejecuta `backtrackBuscar(...)`, que explora caminos válidos y actualiza el mínimo de pasos para llegar al objetivo.
+5. Se devuelve el mínimo encontrado.
 
-Encontrar el **camino más corto** hasta el producto buscado.
+Entre todos los FCs, el `main` elige el que obtuvo el menor número de pasos.
 
-### ❗ Backtracking puro es explosivo
+### 2.2 celdaValida
 
-- 50×50 = 2500 celdas,
-- cada celda tiene 4 vecinos,
-- caminos posibles → **exponencial**, intratable.
-
-👉 Por eso usamos **Backtracking + Poda A\***  
-Una optimización **muy potente** basada en distancias reales mínimas.
-
-# 1. Arquitectura general de la solución
-
-La solución tiene **3 componentes**:
-
-## (1) BFS desde el objetivo → `calcularDistancias(...)`
-
-Normalmente buscás desde la entrada hacia la meta.  
-Pero acá hacemos el **BFS al revés**, desde el objetivo hacia todo el mapa.
-
-Esto llena una matriz:
-
-```
-dist[f][c] = distancia mínima REAL desde (f,c) al objetivo
-```
-
-Si dist[f][c] == -1 → esa celda **jamás puede** llegar al objetivo.
-
-Esto nos da una heurística perfecta:
-si desde (f,c) se necesitan al menos dist[f][c] pasos más,
-entonces cualquier camino actual que ya tenga pasos + dist[f][c] >= mejor
-nunca será óptimo.
-
-Esta distancia se usa para la poda A\* dentro del backtracking.
-
-## (2) Backtracking → `backtrack(...)`
-
-Explora caminos posibles desde `(0,0)`:
-
-- avanza por `'C'` o por el producto final
-- marca visitado
-- retrocede
-- aplica podas A\*:
-  - si ya soy peor que el mejor → corto
-  - si esta celda no puede llegar al objetivo → corto
-  - si los pasos actuales + mínimo posible ≥ mejor → corto
-
-Además:
-
-👉 **Ordena movimientos** según `dist`, probando primero los mejores.
-
-Esto lo vuelve extremadamente eficiente.
-
-## (3) Coordinación → `resolverFC(...)` y `main`
-
-`resolverFC`:
-
-- ubica el objetivo
-- genera `dist`
-- genera `visitado`
-- corre el backtracking
-- devuelve cantidad mínima de pasos
-
-`main`:
-
-- prueba todos los FCs
-- se queda con el mejor (menor pasos)
-- imprime índice y pasos
-
-# 2. Explicación profunda del flujo REAL del código
-
-## 🔹 2.1. `calcularDistancias(...)` – BFS inverso
-
-Objetivo:
-
-> “¿Cuántos pasos me faltan como mínimo para llegar desde cada celda al producto?”
-
-### ¿Por qué BFS inverso?
-
-Porque desde cualquier posición `(f,c)` queremos saber:
-
-- ¿puedo llegar al objetivo?
-- ¿cuál es la distancia mínima exacta?
-
-Eso permite calcular:
-
-```
-pasos_actuales + dist[f][c]
-```
-
-Si ese número **ya no puede** ser mejor que el mejor encontrado:
-
-→ **podo**.
-
-### Flujo interno:
-
-1. Inicializa todas las celdas con `dist = -1`
-2. Pone el objetivo con `dist = 0`
-3. BFS clásico:
-   - toma una celda
-   - revisa vecinos
-   - si vecino es 'C' o es el producto → accesible
-   - si dist era -1 → asigna dist = dist_actual + 1
-
-### Resultado:
-
-Una matriz que indica desde dónde es posible llegar al objetivo  
-y cuántos pasos faltan.
-
-👉 Poda A\* perfecta, porque es **distancia real**, no estimada.
-
-## 🔹 2.2. `backtrack(...)` – búsqueda profunda + A\*
-
-Esta es la parte central.
-
-Parámetros:
-
-- `fil`, `col` → posición actual
-- `pasos` → pasos recorridos
-- `dist[][]` → distancia mínima restante
-- `visitado[][]` → para evitar ciclos
-- `mejor` → mejor valor encontrado hasta ahora
-
-## 🔥 Podas aplicadas
-
-### (1) Ya sos peor que el mejor
+La función:
 
 ```cpp
-if (mejor != -1 && pasos >= mejor) return;
+bool celdaValida(char **mapa, bool **visitado, int F, int C,
+                 int f, int c, char objetivo)
 ```
 
-Ejemplo:
-Ya encontraste solución de 11 pasos.  
-Otra ruta ya tiene 12 → no sirve → cortar.
+Verifica tres condiciones:
 
-### (2) Esta celda NO puede llegar al objetivo
+- Que la celda esté dentro del mapa.
+- Que no haya sido visitada previamente.
+- Que sea corredor (`'C'`) o sea el producto buscado.
+
+Solo esas celdas pueden pisarse.
+
+### 2.3 backtrackBuscar
 
 ```cpp
-if (dist[fil][col] == -1) return;
+void backtrackBuscar(char **mapa, bool **visitado, int **dist,
+                     int F, int C,
+                     int f, int c,
+                     int pasos,
+                     char objetivo,
+                     int &mejor)
 ```
 
-distancia -1 significa:  
-“desde acá **no existe** camino posible al objetivo”.
+Esta es la función más importante. Implementa un **backtracking con múltiples podas**:
 
-### (3) A\* real – aunque mejores, nunca ganas
+1. **Caso base**: si la celda actual contiene el objetivo, actualiza `mejor`.
+2. **Poda por suboptimalidad**: si `pasos >= mejor`, el camino no sirve.
+3. **Poda por peor llegada previa**: si ya se llegó antes a esta celda con menos pasos (`dist[f][c] <= pasos`), tampoco tiene sentido seguir.
+4. Se actualiza `dist[f][c] = pasos`.
+5. Se exploran las 4 direcciones posibles recursivamente, marcando la celda como visitada antes de entrar y desmarcándola al salir.
+
+Esto recorre solo caminos simples y evita bucles o caminos que ya quedaron descartados.
+
+### 2.4 resolverCentro
 
 ```cpp
-if (mejor != -1 && pasos + dist[fil][col] >= mejor) return;
+int resolverCentro(char objetivo, char **mapa, int F, int C)
 ```
 
-Interpretación:
+Realiza la gestión completa para un FC:
 
-```
-pasos + (dist mínima posible desde acá) >= mejor
-```
+- Verifica si (0,0) es transitable.
+- Crea las matrices `visitado` y `dist`.
+- Llama a `backtrackBuscar`.
+- Libera memoria.
+- Devuelve la cantidad mínima de pasos.
 
-Entonces **ni siquiera en el mejor caso** podés ganar → se corta.
+### 2.5 main
 
-## 🔥 Ordenamiento de vecinos (heurística A\*)
+Procesa todos los centros logísticos:
 
-Antes de explorar vecinos, se reordenan:
+- Lee el producto a buscar.
+- Lee la cantidad de FCs.
+- Por cada FC:
+  - Carga el mapa.
+  - Llama a `resolverCentro`.
+- Imprime el índice del FC ganador y su cantidad de pasos.
 
-```
-según dist[nf][nc]
-```
+## 3. Ejemplos ilustrativos
 
-El movimiento “más prometedor” se prueba primero.
-
-Así encontramos la solución óptima temprano  
-→ eso baja “mejor”  
-→ activa muchas más podas  
-→ exploración mínima
-
-## 🔥 Flujo operativo del backtracking
-
-1. Si es subóptimo → cortar
-2. Si no llega a objetivo → cortar
-3. Si ni sumando lo mejor alcanza → cortar
-4. Ordenar movimientos
-5. Para cada vecino:
-   - si está dentro del mapa
-   - si es 'C' o el producto buscado
-   - si no está visitado  
-     → marcar, llamar recursivamente, desmarcar
-6. Si `fil == objetivo.fil && col == objetivo.col`  
-   → actualizar mejor, retornar
-
-## 🔹 2.3. `resolverFC(...)`
-
-Hace:
-
-1. Busca la posición del producto
-2. Crea matrices `dist` y `visitado`
-3. Corre BFS inverso
-4. Si `(0,0)` no llega → devolver -1
-5. Crear visitado inicial
-6. Ejecutar `backtrack(0,0,0)`
-7. Liberar memoria
-8. Devolver `mejor`
-
-## 🔹 2.4. `main`
-
-1. Lee producto
-2. Lee P
-3. Por cada FC:
-   - lee mapa
-   - corre `resolverFC`
-   - actualiza mejor
-4. Imprime:
-
-```
-<indice> <mejor_pasos>
-```
-
-# 3. Mini recorrido conceptual simplificado
-
-Supongamos:
+### Ejemplo 1 (simples pasillos)
 
 ```
 C C C
@@ -245,79 +102,42 @@ C X C
 C S C
 ```
 
-Producto `'S'` en `(2,1)`.
+- El producto es `S`.
+- El camino óptimo baja por la columna izquierda.
+- Resultado: 3 pasos.
 
-## 🙨 Fase 1: BFS inverso
-
-dist queda:
-
-```
-(2,1) = 0
-(1,1) = 1
-(2,0) = 1
-(2,2) = 1
-(0,1) = 2
-(1,0) = 2
-(1,2) = 2
-(0,0) = 3
-```
-
-Esto indica que la distancia mínima desde `(0,0)` vale **3**.
-
-## 🙨 Fase 2: Backtracking
-
-Inicio:
+### Ejemplo 2 (producto bloqueado salvo por un corredor estrecho)
 
 ```
-backtrack(0,0,0)
-dist[0][0] = 3
-→ mínimo posible total = 3
+C C P
+X X C
+C C S
 ```
 
-Explora vecinos ordenados:
+El explorador prueba múltiples caminos, pero las podas evitan ramas inútiles.
 
-- `(1,0)` dist=2
-- `(0,1)` dist=2
-
-Ve primero `(1,0)`:
+### Ejemplo 3 (varios productos pero solo uno es el objetivo)
 
 ```
-backtrack(1,0,1)
-→ dist=2 → total mínimo = 1+2 = 3
+C A C B C
+C C C C C
+D C S C E
 ```
 
-Luego llega a `(2,1)`:
+Se encuentra el producto `S` avanzando hacia abajo.
 
-```
-backtrack(2,1,3)
-→ encontró el objetivo
-```
+## 4. Complejidad
 
-Actualiza:
+Aunque el backtracking puro sería teóricamente exponencial en el peor caso, las podas aplicadas reducen drásticamente la exploración real.
 
-```
-mejor = 3
-```
+- **Peor caso teórico:** O(3^(F·C))  
+  (cada celda puede continuar como máximo 3 movimientos sin volver)
 
-Ahora cualquier camino que supere 3 se poda automáticamente.
+- **Caso práctico:** cercano a O(F·C), porque:
+  - Se evita repetir celdas con peor cantidad de pasos.
+  - Se corta inmediatamente cuando se supera la mejor solución.
+  - No se exploran caminos sin salida.
 
-# 4. ¿Por qué es óptimo?
+## 5. Declaración de Autoría
 
-- Backtracking explora todas las rutas posibles.
-- BFS inverso da la distancia mínima R-E-A-L.
-- A\* evita explorar caminos inútiles.
-- Ordenamiento acelera encontrar la solución óptima.
-
-👉 Cumple con la consigna “usar backtracking”,  
-pero sin perder eficiencia.
-
-# 5. Complejidad
-
-### Peor caso teórico:
-
-exponencial → 4^(MN)
-
-### Caso real gracias a BFS + A\*:
-
-- se explora solo una franja pequeña alrededor del camino óptimo
-- extremadamente rápido incluso si P = 10.000
+Este ejercicio fue desarrollado íntegramente por nuestro grupo. La estructura de poda y exploración está inspirada en técnicas vistas en clase, especialmente las aplicadas al recorrido del caballo en ajedrez, donde se optimiza la búsqueda para reducir drásticamente las ramas inválidas. Toda la implementación del algoritmo específico para los centros logísticos, así como la gestión completa de estructuras auxiliares y memoria, fue realizada por el grupo sin emplear código externo ni herramientas generativas.

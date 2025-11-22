@@ -58,7 +58,6 @@ void mochilaDP(Elemento **elementos, int N, int S, int L)
 
     cout << dp[N][S][L] << endl;
 
-    // Liberar memoria
     for (int i = 0; i <= N; i++)
     {
         for (int j = 0; j <= S; j++)

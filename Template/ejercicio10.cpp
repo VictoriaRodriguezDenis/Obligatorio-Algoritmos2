@@ -26,7 +26,7 @@ int main()
             for (int j = 0; j < C; j++)
                 cin >> mapa[i][j];
 
-        int pasos = resolverFC(producto, mapa, F, C);
+        int pasos = resolverCentro(producto, mapa, F, C);
 
         if (pasos != -1 &&
             (mejorPasos == -1 || pasos < mejorPasos))

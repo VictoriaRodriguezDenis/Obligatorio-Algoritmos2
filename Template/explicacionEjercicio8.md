@@ -71,7 +71,7 @@ Pero sin exponencial → **DP top‑down con memoización**.
 Tu función:
 
 ```cpp
-long long calcMemo(int izq, int der, int extras, int N)
+int calcMemo(int izq, int der, int extras, int N)
 ```
 
 Significado:
@@ -93,7 +93,7 @@ Es la clave del problema “Remove Boxes”.
 ### 🔹 Opción 1 — Borrar el cristal `der` (y sus `extras`) ahora
 
 ```cpp
-long long mejor =
+int mejor =
     calcMemo(izq, der - 1, 0, N) + (extras + 1) * (extras + 1);
 ```
 
@@ -116,7 +116,7 @@ for (int i = izq; i < der; i++)
 Si encontramos un índice `i` donde el color coincide:
 
 ```cpp
-long long unir =
+int unir =
     calcMemo(izq, i, extras + 1, N) +
     calcMemo(i + 1, der - 1, 0, N);
 ```
@@ -136,7 +136,7 @@ if (izq > der) return 0;
 Subarreglo vacío → no hay puntaje.
 
 ```cpp
-long long &memo = dpMemo[izq][der][extras];
+int &memo = dpMemo[izq][der][extras];
 if (memo != -1) return memo;
 ```
 
@@ -144,7 +144,7 @@ Si ya lo calculamos → lo devolvemos.
 **Acá ocurre la memoización real.**
 
 ```cpp
-long long mejor =
+int mejor =
     calcMemo(izq, der - 1, 0, N) + (extras + 1) * (extras + 1);
 ```
 
@@ -155,7 +155,7 @@ for (int i = izq; i < der; i++)
 {
     if (colores[i] == colores[der])
     {
-        long long unir =
+        int unir =
             calcMemo(izq, i, extras + 1, N) +
             calcMemo(i + 1, der - 1, 0, N);
 

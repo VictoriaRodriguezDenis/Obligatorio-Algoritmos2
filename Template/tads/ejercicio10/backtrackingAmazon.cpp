@@ -73,7 +73,7 @@ void backtrackBuscar(char **mapa, bool **visitado, int **dist,
 }
 
 // Resolver un FC completo
-int resolverFC(char objetivo, char **mapa, int F, int C)
+int resolverCentro(char objetivo, char **mapa, int F, int C)
 {
     int INF = F * C + 5;
     // Si la celda inicial no es transitable → imposible
