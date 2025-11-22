@@ -13,7 +13,6 @@ struct Mejora
     int aumento;
 };
 
-// --- TAD Heap Máximo (implementación sin vector ni MAXN) ---
 class HeapMax
 {
 private:
@@ -65,7 +64,7 @@ public:
     void encolar(int valor)
     {
         if (cantidad + 1 >= capacidad)
-            return; // protección por seguridad
+            return;
         elementos[++cantidad] = valor;
         flotar(cantidad);
     }
@@ -84,7 +83,6 @@ public:
     }
 };
 
-// --- Lógica principal del problema ---
 int resolverSkate(Pozo pozos[], int cantPozos, Mejora mejoras[], int cantMejoras, int destino)
 {
     int posicion = 1;
@@ -93,40 +91,58 @@ int resolverSkate(Pozo pozos[], int cantPozos, Mejora mejoras[], int cantMejoras
     int indicePozo = 0;
     int indiceMejora = 0;
 
+    // apuntador para el pozo relevante respecto al alcance
+    int indicePozoAlcance = 0;
+
     HeapMax *mejorasDisponibles = new HeapMax(cantMejoras);
 
     while (posicion < destino)
     {
+        // avanzar pozos que quedan totalmente a la izquierda de la posición actual
         while (indicePozo < cantPozos && pozos[indicePozo].fin < posicion)
             indicePozo++;
 
         int alcance = posicion + poder;
+
+        // si con el poder actual ya llego o paso el destino, listo
         if (alcance >= destino)
         {
             delete mejorasDisponibles;
             return mejorasUsadas;
         }
 
+        // agregar todas las mejoras que estén en casas alcanzables
         while (indiceMejora < cantMejoras && mejoras[indiceMejora].posicion <= alcance)
         {
             mejorasDisponibles->encolar(mejoras[indiceMejora].aumento);
             indiceMejora++;
         }
 
-        if (indicePozo < cantPozos &&
-            pozos[indicePozo].inicio <= alcance &&
-            pozos[indicePozo].inicio > posicion)
+        // ajustar el índice de pozo para no mirar pozos que ya quedaron atrás de la posición
+        if (indicePozoAlcance < indicePozo)
+            indicePozoAlcance = indicePozo;
+
+        // avanzar el índice de pozo según el alcance:
+        // buscamos el primer pozo cuyo fin sea >= alcance
+        while (indicePozoAlcance < cantPozos && pozos[indicePozoAlcance].fin < alcance)
+            indicePozoAlcance++;
+
+        // si el alcance cae dentro de ese pozo, recorto el salto a la casa anterior al pozo
+        if (indicePozoAlcance < cantPozos &&
+            pozos[indicePozoAlcance].inicio <= alcance &&
+            pozos[indicePozoAlcance].inicio > posicion)
         {
-            if (pozos[indicePozo].fin >= alcance)
-                alcance = pozos[indicePozo].inicio - 1;
+            alcance = pozos[indicePozoAlcance].inicio - 1;
         }
 
+        // si puedo avanzar, avanzo
         if (alcance > posicion)
         {
             posicion = alcance;
         }
         else
         {
+            // no puedo avanzar sin pedir mejoras
             if (mejorasDisponibles->estaVacio())
             {
                 delete mejorasDisponibles;

@@ -1,5 +1,4 @@
 #include <iostream>
-#include <string>
 #include "tads/ejercicio6/skatePropulsion.cpp"
 using namespace std;
 

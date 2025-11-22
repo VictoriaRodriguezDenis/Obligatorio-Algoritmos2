@@ -1,4 +1,3 @@
-#include <cassert>
 #include <iostream>
 #include "tads/ejercicio9/mochila3D.cpp"
 

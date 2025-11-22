@@ -75,9 +75,10 @@ void backtrackBuscar(char **mapa, bool **visitado, int **dist,
 // Resolver un FC completo
 int resolverFC(char objetivo, char **mapa, int F, int C)
 {
+    int INF = F * C + 5;
     // Si la celda inicial no es transitable → imposible
     if (!(mapa[0][0] == 'C' || mapa[0][0] == objetivo))
-        return 1000000000;
+        return -1;
 
     // Tablas dinámicas
     bool **visitado = new bool *[F];
@@ -91,11 +92,11 @@ int resolverFC(char objetivo, char **mapa, int F, int C)
         for (int j = 0; j < C; j++)
         {
             visitado[i][j] = false;
-            dist[i][j] = 1000000000; // muy grande
+            dist[i][j] = INF;
         }
     }
 
-    int mejor = 1000000000;
+    int mejor = INF;
 
     visitado[0][0] = true;
 
@@ -115,5 +116,7 @@ int resolverFC(char objetivo, char **mapa, int F, int C)
     delete[] visitado;
     delete[] dist;
 
+    if (mejor == INF)
+        return -1;
     return mejor;
 }

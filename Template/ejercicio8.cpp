@@ -11,20 +11,20 @@ int main()
     for (int i = 0; i < N; i++)
         cin >> colores[i];
 
-    long long ***dpMemo = new long long **[N];
+    int ***dpMemo = new int **[N];
 
     for (int i = 0; i < N; i++)
     {
-        dpMemo[i] = new long long *[N];
+        dpMemo[i] = new int *[N];
         for (int j = 0; j < N; j++)
         {
-            dpMemo[i][j] = new long long[N];
+            dpMemo[i][j] = new int[N];
             for (int k = 0; k < N; k++)
                 dpMemo[i][j][k] = -1;
         }
     }
 
-    long long ans = calcMemo(0, N - 1, 0, N, colores, dpMemo);
+    int ans = calcMemo(0, N - 1, 0, colores, dpMemo);
     cout << ans << "\n";
 
     for (int i = 0; i < N; i++)

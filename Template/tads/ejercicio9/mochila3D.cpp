@@ -11,11 +11,6 @@ public:
     Elemento(int t, int l, int p) : tamano(t), lineas(l), puntos(p) {}
 };
 
-int miMax(int a, int b)
-{
-    return (a > b ? a : b);
-}
-
 //  DP 3D — Tabulación O(N * S * L)
 void mochilaDP(Elemento **elementos, int N, int S, int L)
 {
@@ -55,7 +50,7 @@ void mochilaDP(Elemento **elementos, int N, int S, int L)
                 if (j >= t && k >= ln)
                 {
                     int candidato = p + dp[i - 1][j - t][k - ln];
-                    dp[i][j][k] = miMax(dp[i][j][k], candidato);
+                    dp[i][j][k] = max(dp[i][j][k], candidato);
                 }
             }
         }
